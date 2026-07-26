@@ -55,7 +55,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto -mt-16 max-w-5xl px-4">
+      <section className="relative z-10 mx-auto -mt-16 max-w-5xl px-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { icon: Wallet, title: "True total price", body: "Needle, tube & registration charges included in every quote." },
