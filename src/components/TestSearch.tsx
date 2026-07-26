@@ -73,7 +73,7 @@ export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
   };
 
   return (
-    <div ref={boxRef} className="relative w-full">
+    <div ref={boxRef} className="relative w-full text-foreground">
       <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-[var(--shadow-card)] focus-within:ring-2 focus-within:ring-ring/60">
         <Search className="size-5 shrink-0 text-primary" aria-hidden />
         <input
