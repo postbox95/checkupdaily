@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
 
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,32 +31,43 @@ const TestCodeRoute = TestCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/test/$code'
+  fullPaths: '/' | '/compare' | '/test/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/test/$code'
-  id: '__root__' | '/' | '/test/$code'
+  to: '/' | '/compare' | '/test/$code'
+  id: '__root__' | '/' | '/compare' | '/test/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompareRoute: typeof CompareRoute
   TestCodeRoute: typeof TestCodeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompareRoute: CompareRoute,
   TestCodeRoute: TestCodeRoute,
 }
 export const routeTree = rootRouteImport
