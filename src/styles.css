@@ -148,6 +148,12 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+:root {
+  --gradient-hero: linear-gradient(150deg, oklch(0.47 0.086 184), oklch(0.6 0.12 175) 55%, oklch(0.72 0.14 162));
+  --shadow-card: 0 1px 2px oklch(0.4 0.04 220 / 8%), 0 12px 28px -18px oklch(0.4 0.04 220 / 40%);
+  --shadow-float: 0 18px 40px -14px oklch(0.47 0.086 184 / 45%);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -156,5 +162,24 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :lang(bn),
+  [data-lang="bn"] {
+    font-family: var(--font-bangla);
   }
 }
+
+@utility surface-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+@utility hero-gradient {
+  background-image: var(--gradient-hero);
+}
+
