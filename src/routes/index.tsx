@@ -38,7 +38,7 @@ function Home() {
 
   return (
     <main>
-      <section className="hero-gradient relative overflow-hidden px-4 pt-14 pb-28 text-primary-foreground">
+      <section className="hero-gradient relative px-4 pt-14 pb-28 text-primary-foreground">
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold">
             <Sparkles className="size-3.5" aria-hidden /> Dhaka · 9 branches · 17 tests
@@ -50,7 +50,7 @@ function Home() {
             {t("heroSub", lang)}
           </p>
         </div>
-        <div className="mx-auto mt-8 max-w-2xl">
+        <div className="relative z-30 mx-auto mt-8 max-w-2xl">
           <TestSearch />
         </div>
       </section>
