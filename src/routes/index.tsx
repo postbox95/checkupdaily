@@ -38,7 +38,7 @@ function Home() {
 
   return (
     <main>
-      <section className="hero-gradient relative px-4 pt-14 pb-28 text-primary-foreground">
+      <section className="hero-gradient relative z-20 px-4 pt-14 pb-16 text-primary-foreground">
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold">
             <Sparkles className="size-3.5" aria-hidden /> Dhaka · 9 branches · 17 tests
@@ -55,7 +55,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto -mt-16 max-w-5xl px-4">
+      <section className="relative z-10 mx-auto mt-6 max-w-5xl px-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { icon: Wallet, title: "True total price", body: "Needle, tube & registration charges included in every quote." },
