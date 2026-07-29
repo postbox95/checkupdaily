@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
 
@@ -22,6 +23,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,12 +43,14 @@ const TestCodeRoute = TestCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/test/$code': typeof TestCodeRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/compare' | '/sitemap.xml' | '/test/$code'
+  fullPaths: '/' | '/auth' | '/compare' | '/sitemap.xml' | '/test/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/compare' | '/sitemap.xml' | '/test/$code'
-  id: '__root__' | '/' | '/compare' | '/sitemap.xml' | '/test/$code'
+  to: '/' | '/auth' | '/compare' | '/sitemap.xml' | '/test/$code'
+  id: '__root__' | '/' | '/auth' | '/compare' | '/sitemap.xml' | '/test/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TestCodeRoute: typeof TestCodeRoute
@@ -85,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TestCodeRoute: TestCodeRoute,
