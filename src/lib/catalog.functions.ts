@@ -182,17 +182,14 @@ export const saveRecord = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const t = table(data.table);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t: any = context.supabase.from(table(data.table));
     if (data.id) {
-      const { error } = await context.supabase.from(t).update(data.values).eq("id", data.id);
+      const { error } = await t.update(data.values).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: inserted, error } = await context.supabase
-      .from(t)
-      .insert(data.values)
-      .select("id")
-      .single();
+    const { data: inserted, error } = await t.insert(data.values).select("id").single();
     if (error) throw new Error(error.message);
     return { id: inserted.id as string };
   });
@@ -275,7 +272,11 @@ export const saveSettings = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { error } = await context.supabase
       .from("site_settings")
-      .upsert({ key: "general", value: data.value }, { onConflict: "key" });
+      .upsert(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { key: "general", value: data.value as any },
+        { onConflict: "key" },
+      );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
