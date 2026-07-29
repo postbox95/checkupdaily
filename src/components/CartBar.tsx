@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Trash2, TriangleAlert, Utensils } from "lucide-react";
 import { useState } from "react";
-import { testById } from "@/data/seed";
+import { useCatalog } from "@/lib/catalog";
 import { redundancyWarning } from "@/lib/search";
 import { t } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
@@ -15,12 +15,13 @@ import {
 
 export function CartBar() {
   const { cart, lang, removeFromCart, clearCart } = useAppStore();
+  const catalog = useCatalog();
   const [open, setOpen] = useState(false);
   if (cart.length === 0) return null;
 
-  const items = cart.map((id) => testById(id)!).filter(Boolean);
+  const items = cart.map((id) => catalog.testById(id)!).filter(Boolean);
   const fasting = items.filter((i) => i.fastingRequired);
-  const warning = redundancyWarning(items.map((i) => i.code));
+  const warning = redundancyWarning(catalog.tests, items.map((i) => i.code));
 
   return (
     <>

@@ -1,14 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Printer, Share2, Trophy, TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
-import {
-  centers,
-  distanceKm,
-  effectivePrice,
-  prices,
-  testById,
-  thanaCoords,
-} from "@/data/seed";
+import { distanceKm, effectivePrice } from "@/data/seed";
+import { useCatalog } from "@/lib/catalog";
 import { bdt, useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +33,8 @@ export const Route = createFileRoute("/compare")({
 
 function ComparePage() {
   const { cart, thana } = useAppStore();
-  const origin = thanaCoords[thana] ?? thanaCoords.Dhanmondi;
+  const { centers, prices, testById, thanaCoords } = useCatalog();
+  const origin = thanaCoords[thana] ?? Object.values(thanaCoords)[0] ?? { lat: 23.75, lng: 90.39 };
 
   const results = useMemo(() => {
     return centers
@@ -71,7 +66,7 @@ function ComparePage() {
         };
       })
       .sort((a, b) => b.covered - a.covered || a.total - b.total);
-  }, [cart, origin]);
+  }, [cart, origin, centers, prices, testById]);
 
   if (cart.length === 0) {
     return (

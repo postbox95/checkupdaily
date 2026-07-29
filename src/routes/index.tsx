@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import { TestSearch } from "@/components/TestSearch";
-import { tests, prices, effectivePrice } from "@/data/seed";
+import { effectivePrice } from "@/data/seed";
+import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
@@ -26,28 +27,28 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const popular = ["TEST-CBC", "TEST-LIPID", "TEST-USG-ABD", "TEST-HBA1C", "TEST-ECG", "TEST-CREAT"];
-
-function lowestTotal(testId: string) {
-  const rows = prices.filter((p) => p.medicalTestId === testId);
-  return Math.min(...rows.map(effectivePrice));
-}
-
 function Home() {
   const lang = useAppStore((s) => s.lang);
+  const { tests, prices, centers, settings } = useCatalog();
+
+  const popularTests = tests.filter((x) => x.isPopular).slice(0, 6);
+  const lowestTotal = (testId: string) => {
+    const rows = prices.filter((p) => p.medicalTestId === testId && p.isAvailable);
+    return rows.length ? Math.min(...rows.map(effectivePrice)) : 0;
+  };
 
   return (
     <main>
       <section className="hero-gradient relative z-20 px-4 pt-14 pb-16 text-primary-foreground">
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-semibold">
-            <Sparkles className="size-3.5" aria-hidden /> Dhaka · 9 branches · 17 tests
+            <Sparkles className="size-3.5" aria-hidden /> Dhaka · {centers.length} branches · {tests.length} tests
           </span>
           <h1 className="mt-5 text-3xl leading-tight font-extrabold tracking-tight sm:text-5xl">
-            {t("heroTitle", lang)}
+            {(lang === "bn" ? settings.heroTitleBn : settings.heroTitleEn) || t("heroTitle", lang)}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm/relaxed opacity-90 sm:text-base">
-            {t("heroSub", lang)}
+            {(lang === "bn" ? settings.heroSubBn : settings.heroSubEn) || t("heroSub", lang)}
           </p>
         </div>
         <div className="relative z-30 mx-auto mt-8 max-w-2xl">
@@ -74,8 +75,8 @@ function Home() {
       <section className="mx-auto max-w-5xl px-4 py-12">
         <h2 className="text-lg font-bold tracking-tight">{t("popularTests", lang)}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {popular.map((code) => {
-            const test = tests.find((x) => x.code === code)!;
+          {popularTests.map((test) => {
+            const code = test.code;
             return (
               <Link
                 key={code}
