@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { MapPin, Stethoscope } from "lucide-react";
 import { useState } from "react";
-import { THANAS } from "@/data/seed";
+import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 export function SiteHeader() {
   const { lang, setLang, thana, setThana } = useAppStore();
   const [open, setOpen] = useState(false);
+  const { thanas, settings } = useCatalog();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
@@ -25,7 +26,7 @@ export function SiteHeader() {
             <Stethoscope className="size-5" aria-hidden />
           </span>
           <span className="hidden text-base font-bold tracking-tight sm:block">
-            {t("brand", lang)}
+            {settings.siteName || t("brand", lang)}
           </span>
         </Link>
 
@@ -44,7 +45,7 @@ export function SiteHeader() {
                 <DrawerTitle>Select your area in Dhaka</DrawerTitle>
               </DrawerHeader>
               <div className="grid grid-cols-2 gap-2 px-4 pb-8 sm:grid-cols-3">
-                {THANAS.map((area) => (
+                {thanas.map(({ name: area }) => (
                   <button
                     key={area}
                     onClick={() => {

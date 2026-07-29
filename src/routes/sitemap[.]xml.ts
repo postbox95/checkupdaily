@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { tests } from "@/data/seed";
+import { createClient } from "@supabase/supabase-js";
 
 // TODO: replace with your project URL once a project name or custom domain is set.
 const BASE_URL = "";
@@ -15,10 +15,28 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+        const sb = createClient(process.env.SUPABASE_URL!, key, {
+          auth: { persistSession: false },
+          global: {
+            fetch: (input, init) => {
+              const h = new Headers(init?.headers);
+              if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
+                h.delete("Authorization");
+              h.set("apikey", key);
+              return fetch(input, { ...init, headers: h });
+            },
+          },
+        });
+        const { data: tests } = await sb
+          .from("medical_tests")
+          .select("code")
+          .eq("is_active", true);
+
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/compare", changefreq: "weekly", priority: "0.7" },
-          ...tests.map((t) => ({
+          ...(tests ?? []).map((t: { code: string }) => ({
             path: `/test/${t.code}`,
             changefreq: "weekly" as const,
             priority: "0.8",

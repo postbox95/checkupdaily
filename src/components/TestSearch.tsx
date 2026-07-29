@@ -3,7 +3,7 @@ import { Clock, Plus, Search, Utensils } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { MedicalTest } from "@/data/seed";
-import { tests } from "@/data/seed";
+import { useCatalog } from "@/lib/catalog";
 import { redundancyWarning, searchTests } from "@/lib/search";
 import { t } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
@@ -25,6 +25,7 @@ export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { lang, cart, addToCart } = useAppStore();
+  const { tests } = useCatalog();
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(query), 60);
@@ -39,7 +40,7 @@ export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
-  const results = useMemo(() => searchTests(debounced), [debounced]);
+  const results = useMemo(() => searchTests(tests, debounced), [tests, debounced]);
 
   const quickAdd = (test: MedicalTest) => {
     if (cart.includes(test.id)) {
@@ -48,9 +49,9 @@ export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
     }
     addToCart(test.id);
     const codes = [...cart, test.id]
-      .map((id) => tests.find((x) => x.id === id)?.code)
+      .map((id) => tests.find((x: MedicalTest) => x.id === id)?.code)
       .filter(Boolean) as string[];
-    const warn = redundancyWarning(codes);
+    const warn = redundancyWarning(tests, codes);
     if (warn) toast.warning(warn);
     else toast.success(`${test.canonicalName} added to prescription cart.`);
   };
