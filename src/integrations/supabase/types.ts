@@ -14,16 +14,282 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      diagnostic_centers: {
+        Row: {
+          address: string
+          branch_name: string
+          city: string
+          contact_phone: string
+          created_at: string
+          home_sample_available: boolean
+          id: string
+          is_active: boolean
+          latitude: number
+          longitude: number
+          name: string
+          sample_collection_fee: number
+          slug: string
+          sort_order: number
+          thana: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          branch_name?: string
+          city?: string
+          contact_phone?: string
+          created_at?: string
+          home_sample_available?: boolean
+          id?: string
+          is_active?: boolean
+          latitude?: number
+          longitude?: number
+          name: string
+          sample_collection_fee?: number
+          slug: string
+          sort_order?: number
+          thana?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          branch_name?: string
+          city?: string
+          contact_phone?: string
+          created_at?: string
+          home_sample_available?: boolean
+          id?: string
+          is_active?: boolean
+          latitude?: number
+          longitude?: number
+          name?: string
+          sample_collection_fee?: number
+          slug?: string
+          sort_order?: number
+          thana?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_tests: {
+        Row: {
+          bangla_name: string
+          canonical_name: string
+          category: string
+          code: string
+          created_at: string
+          description: string
+          fasting_hours: number | null
+          fasting_required: boolean
+          id: string
+          is_active: boolean
+          is_popular: boolean
+          preparation_note: string
+          report_delivery_hrs: number
+          sort_order: number
+          synonyms: string[]
+          updated_at: string
+        }
+        Insert: {
+          bangla_name?: string
+          canonical_name: string
+          category?: string
+          code: string
+          created_at?: string
+          description?: string
+          fasting_hours?: number | null
+          fasting_required?: boolean
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          preparation_note?: string
+          report_delivery_hrs?: number
+          sort_order?: number
+          synonyms?: string[]
+          updated_at?: string
+        }
+        Update: {
+          bangla_name?: string
+          canonical_name?: string
+          category?: string
+          code?: string
+          created_at?: string
+          description?: string
+          fasting_hours?: number | null
+          fasting_required?: boolean
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          preparation_note?: string
+          report_delivery_hrs?: number
+          sort_order?: number
+          synonyms?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      test_prices: {
+        Row: {
+          created_at: string
+          diagnostic_center_id: string
+          discounted_price: number | null
+          id: string
+          is_available: boolean
+          medical_test_id: string
+          notes: string | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diagnostic_center_id: string
+          discounted_price?: number | null
+          id?: string
+          is_available?: boolean
+          medical_test_id: string
+          notes?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diagnostic_center_id?: string
+          discounted_price?: number | null
+          id?: string
+          is_available?: boolean
+          medical_test_id?: string
+          notes?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_prices_diagnostic_center_id_fkey"
+            columns: ["diagnostic_center_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_prices_medical_test_id_fkey"
+            columns: ["medical_test_id"]
+            isOneToOne: false
+            referencedRelation: "medical_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thanas: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          latitude: number
+          longitude: number
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude: number
+          longitude: number
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number
+          longitude?: number
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +416,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor", "user"],
+    },
   },
 } as const
