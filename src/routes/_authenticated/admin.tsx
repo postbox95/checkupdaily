@@ -126,7 +126,7 @@ function AdminShell() {
           <AreasPanel thanas={catalog.thanas} />
         </TabsContent>
         <TabsContent value="settings">
-          <SettingsPanel settings={catalog.settings} />
+          <SettingsPanel settings={{ ...catalog.settings }} />
         </TabsContent>
         <TabsContent value="users">
           <UsersPanel />
