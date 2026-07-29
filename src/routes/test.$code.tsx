@@ -2,15 +2,8 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Info, Phone, Plus, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  centerById,
-  distanceKm,
-  effectivePrice,
-  pricesForTest,
-  testByCode,
-  thanaCoords,
-  tests,
-} from "@/data/seed";
+import { distanceKm, effectivePrice } from "@/data/seed";
+import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
 import { redundancyWarning } from "@/lib/search";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
@@ -23,8 +16,9 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/test/$code")({
-  loader: ({ params }) => {
-    const test = testByCode(params.code);
+  loader: async ({ params, context }) => {
+    const catalog = decorate(await context.queryClient.ensureQueryData(catalogQueryOptions));
+    const test = catalog.testByCode(params.code);
     if (!test) throw notFound();
     return { test };
   },
@@ -50,12 +44,13 @@ export const Route = createFileRoute("/test/$code")({
 
 function TestPage() {
   const { test } = Route.useLoaderData();
+  const { tests, centerById, pricesForTest, thanaCoords } = useCatalog();
   const { lang, thana, cart, addToCart } = useAppStore();
   const [sort, setSort] = useState<"price" | "distance">("price");
   const [homeOnly, setHomeOnly] = useState(false);
   const [areaOnly, setAreaOnly] = useState(false);
 
-  const origin = thanaCoords[thana] ?? thanaCoords.Dhanmondi;
+  const origin = thanaCoords[thana] ?? Object.values(thanaCoords)[0] ?? { lat: 23.75, lng: 90.39 };
 
   const rows = useMemo(() => {
     return pricesForTest(test.id)
@@ -71,7 +66,7 @@ function TestPage() {
       .filter((r) => (homeOnly ? r.center.homeSampleAvailable : true))
       .filter((r) => (areaOnly ? r.center.thana === thana : true))
       .sort((a, b) => (sort === "price" ? a.total - b.total : a.distance - b.distance));
-  }, [test.id, origin, homeOnly, areaOnly, sort, thana]);
+  }, [test.id, origin, homeOnly, areaOnly, sort, thana, centerById, pricesForTest]);
 
   const add = () => {
     if (cart.includes(test.id)) return toast.info("Already in your prescription cart.");
@@ -79,7 +74,7 @@ function TestPage() {
     const codes = [...cart, test.id]
       .map((id) => tests.find((x) => x.id === id)?.code)
       .filter(Boolean) as string[];
-    const warn = redundancyWarning(codes);
+    const warn = redundancyWarning(tests, codes);
     warn ? toast.warning(warn) : toast.success("Added to prescription cart.");
   };
 
