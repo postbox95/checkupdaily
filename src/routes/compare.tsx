@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Printer, Share2, Trophy, TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
-import { distanceKm, effectivePrice } from "@/data/seed";
+import { distanceKm } from "@/data/seed";
 import { useCatalog } from "@/lib/catalog";
 import { bdt, useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -33,23 +33,22 @@ export const Route = createFileRoute("/compare")({
 
 function ComparePage() {
   const { cart, thana } = useAppStore();
-  const { centers, prices, testById, thanaCoords } = useCatalog();
+  const { centers, testById, thanaCoords, branchFee, resolvePrice } = useCatalog();
   const origin = thanaCoords[thana] ?? Object.values(thanaCoords)[0] ?? { lat: 23.75, lng: 90.39 };
 
   const results = useMemo(() => {
     return centers
       .map((center) => {
-        let total = center.sampleCollectionFee;
+        const fee = branchFee(center);
+        let total = fee;
         const items: { name: string; cost: number }[] = [];
         const missing: string[] = [];
         for (const testId of cart) {
           const test = testById(testId);
           if (!test) continue;
-          const row = prices.find(
-            (p) => p.medicalTestId === testId && p.diagnosticCenterId === center.id && p.isAvailable,
-          );
-          if (row) {
-            const cost = effectivePrice(row);
+          const row = resolvePrice(testId, center.id);
+          if (row?.isAvailable) {
+            const cost = row.finalPrice + test.consumableFee;
             total += cost;
             items.push({ name: test.canonicalName, cost });
           } else {
@@ -58,6 +57,7 @@ function ComparePage() {
         }
         return {
           center,
+          fee,
           total,
           items,
           missing,
@@ -66,7 +66,8 @@ function ComparePage() {
         };
       })
       .sort((a, b) => b.covered - a.covered || a.total - b.total);
-  }, [cart, origin, centers, prices, testById]);
+  }, [cart, origin, centers, testById, resolvePrice, branchFee]);
+
 
   if (cart.length === 0) {
     return (
@@ -170,10 +171,11 @@ function ComparePage() {
                     ))}
                     <div className="flex justify-between gap-4">
                       <dt className="text-muted-foreground">
-                        Mandatory needle, tube & registration charge
+                        Registration / sample collection charge (once per visit)
                       </dt>
-                      <dd className="font-semibold">{bdt(r.center.sampleCollectionFee)}</dd>
+                      <dd className="font-semibold">{bdt(r.fee)}</dd>
                     </div>
+
                     <div className="mt-2 flex justify-between gap-4 border-t border-border pt-2">
                       <dt className="font-bold">Total out-of-pocket bill</dt>
                       <dd className="font-extrabold text-primary">{bdt(r.total)}</dd>

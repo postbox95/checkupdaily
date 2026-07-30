@@ -2,7 +2,7 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Info, Phone, Plus, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { distanceKm, effectivePrice } from "@/data/seed";
+import { distanceKm } from "@/data/seed";
 import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
 import { redundancyWarning } from "@/lib/search";
 import { t } from "@/lib/i18n";
@@ -44,7 +44,8 @@ export const Route = createFileRoute("/test/$code")({
 
 function TestPage() {
   const { test } = Route.useLoaderData();
-  const { tests, centerById, pricesForTest, thanaCoords } = useCatalog();
+  const { tests, centerById, pricesForTest, thanaCoords, branchFee, branchHomeCollection } =
+    useCatalog();
   const { lang, thana, cart, addToCart } = useAppStore();
   const [sort, setSort] = useState<"price" | "distance">("price");
   const [homeOnly, setHomeOnly] = useState(false);
@@ -56,17 +57,33 @@ function TestPage() {
     return pricesForTest(test.id)
       .map((p) => {
         const center = centerById(p.diagnosticCenterId)!;
+        const fee = branchFee(center);
         return {
           price: p,
           center,
-          total: effectivePrice(p) + center.sampleCollectionFee,
+          fee,
+          homeCollection: branchHomeCollection(center),
+          total: p.finalPrice + test.consumableFee + fee,
           distance: distanceKm(origin, { lat: center.latitude, lng: center.longitude }),
         };
       })
-      .filter((r) => (homeOnly ? r.center.homeSampleAvailable : true))
+      .filter((r) => (homeOnly ? r.homeCollection : true))
       .filter((r) => (areaOnly ? r.center.thana === thana : true))
       .sort((a, b) => (sort === "price" ? a.total - b.total : a.distance - b.distance));
-  }, [test.id, origin, homeOnly, areaOnly, sort, thana, centerById, pricesForTest]);
+  }, [
+    test.id,
+    test.consumableFee,
+    origin,
+    homeOnly,
+    areaOnly,
+    sort,
+    thana,
+    centerById,
+    pricesForTest,
+    branchFee,
+    branchHomeCollection,
+  ]);
+
 
   const add = () => {
     if (cart.includes(test.id)) return toast.info("Already in your prescription cart.");
@@ -149,30 +166,36 @@ function TestPage() {
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                   <span>
                     Base:{" "}
-                    {r.price.discountedPrice ? (
+                    {r.price.finalPrice < r.price.price ? (
                       <>
                         <s>{bdt(r.price.price)}</s>{" "}
                         <span className="font-semibold text-success">
-                          {bdt(r.price.discountedPrice)}
+                          {bdt(r.price.finalPrice)}
                         </span>
                       </>
                     ) : (
                       <span className="font-semibold">{bdt(r.price.price)}</span>
                     )}
                   </span>
+                  {test.isGovernmentRate && <span>Government rate — no discount</span>}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button className="inline-flex items-center gap-1 underline decoration-dotted">
-                        <Info className="size-3" aria-hidden />+{bdt(r.center.sampleCollectionFee)}{" "}
-                        charges
+                        <Info className="size-3" aria-hidden />+
+                        {bdt(r.fee + test.consumableFee)} charges
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {t("regCharge", lang)} charge applied once per visit at this branch.
+                      {t("regCharge", lang)} {bdt(r.fee)} per visit
+                      {test.consumableFee > 0
+                        ? ` + ${bdt(test.consumableFee)} needle/tube charge for this test`
+                        : " (this test needs no needle/tube charge)"}
+                      .
                     </TooltipContent>
                   </Tooltip>
-                  {r.center.homeSampleAvailable && <span>🏠 Home collection</span>}
+                  {r.homeCollection && <span>🏠 Home collection</span>}
                   {r.price.notes && <span className="text-warning-foreground">⚠ {r.price.notes}</span>}
+
                 </div>
               </div>
               <div className="text-right">

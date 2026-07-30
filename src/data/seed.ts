@@ -16,19 +16,36 @@ export const TEST_CATEGORIES: TestCategory[] = [
   "OTHER",
 ];
 
+export type DiscountType = "none" | "amount" | "percent";
+
+export interface LabChain {
+  id: string;
+  slug: string;
+  name: string;
+  logoUrl: string;
+  defaultHomeSampleAvailable: boolean;
+  defaultSampleCollectionFee: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
 export interface DiagnosticCenter {
   id: string;
   slug: string;
   name: string;
   branchName: string;
+  labChainId: string | null;
   thana: string;
   city: string;
   address: string;
   latitude: number;
   longitude: number;
   contactPhone: string;
+  /** legacy stored value, used as a fallback when the branch has no chain */
   sampleCollectionFee: number;
+  sampleCollectionFeeOverride: number | null;
   homeSampleAvailable: boolean;
+  homeSampleOverride: boolean | null;
   isActive: boolean;
   sortOrder: number;
 }
@@ -45,6 +62,10 @@ export interface MedicalTest {
   fastingRequired: boolean;
   fastingHours?: number | null;
   reportDeliveryHrs: number;
+  /** needle / tube / consumable charge specific to this test (0 for MRI, X-ray…) */
+  consumableFee: number;
+  /** government-regulated price — never discounted */
+  isGovernmentRate: boolean;
   isPopular: boolean;
   isActive: boolean;
   sortOrder: number;
@@ -56,6 +77,19 @@ export interface TestPrice {
   diagnosticCenterId: string;
   price: number;
   discountedPrice?: number | null;
+  discountType: DiscountType;
+  discountValue: number;
+  notes?: string | null;
+  isAvailable: boolean;
+}
+
+export interface ChainTestPrice {
+  id: string;
+  labChainId: string;
+  medicalTestId: string;
+  price: number;
+  discountType: DiscountType;
+  discountValue: number;
   notes?: string | null;
   isAvailable: boolean;
 }
@@ -84,17 +118,21 @@ export interface SiteSettings {
 }
 
 export interface Catalog {
+  chains: LabChain[];
   centers: DiagnosticCenter[];
   tests: MedicalTest[];
   prices: TestPrice[];
+  chainPrices: ChainTestPrice[];
   thanas: Thana[];
   settings: SiteSettings;
 }
 
 export const emptyCatalog: Catalog = {
+  chains: [],
   centers: [],
   tests: [],
   prices: [],
+  chainPrices: [],
   thanas: [],
   settings: {
     siteName: "Niramoy Prices",
@@ -113,7 +151,23 @@ export const emptyCatalog: Catalog = {
   },
 };
 
-export const effectivePrice = (p: TestPrice) => p.discountedPrice ?? p.price;
+/** Applies a discount rule. Government-rate tests are never discounted. */
+export function applyDiscount(
+  price: number,
+  type: DiscountType,
+  value: number,
+  governmentRate = false,
+): number {
+  if (governmentRate || type === "none" || !value) return price;
+  const out = type === "percent" ? price - (price * value) / 100 : price - value;
+  return Math.max(0, Math.round(out));
+}
+
+export const effectivePrice = (
+  p: { price: number; discountType?: DiscountType; discountValue?: number; discountedPrice?: number | null },
+  governmentRate = false,
+) =>
+  applyDiscount(p.price, p.discountType ?? "none", p.discountValue ?? 0, governmentRate);
 
 export function distanceKm(
   a: { lat: number; lng: number },
@@ -129,3 +183,4 @@ export function distanceKm(
       Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.asin(Math.sqrt(s));
 }
+

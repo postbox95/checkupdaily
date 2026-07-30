@@ -3,9 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  applyDiscount,
   emptyCatalog,
   type Catalog,
+  type ChainTestPrice,
   type DiagnosticCenter,
+  type DiscountType,
+  type LabChain,
   type MedicalTest,
   type SiteSettings,
   type TestPrice,
@@ -29,11 +33,23 @@ function publicClient() {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const mapChain = (r: any): LabChain => ({
+  id: r.id,
+  slug: r.slug,
+  name: r.name,
+  logoUrl: r.logo_url ?? "",
+  defaultHomeSampleAvailable: r.default_home_sample_available,
+  defaultSampleCollectionFee: r.default_sample_collection_fee,
+  isActive: r.is_active,
+  sortOrder: r.sort_order,
+});
+
 const mapCenter = (r: any): DiagnosticCenter => ({
   id: r.id,
   slug: r.slug,
   name: r.name,
   branchName: r.branch_name,
+  labChainId: r.lab_chain_id ?? null,
   thana: r.thana,
   city: r.city,
   address: r.address,
@@ -41,7 +57,9 @@ const mapCenter = (r: any): DiagnosticCenter => ({
   longitude: r.longitude,
   contactPhone: r.contact_phone,
   sampleCollectionFee: r.sample_collection_fee,
+  sampleCollectionFeeOverride: r.sample_collection_fee_override ?? null,
   homeSampleAvailable: r.home_sample_available,
+  homeSampleOverride: r.home_sample_override ?? null,
   isActive: r.is_active,
   sortOrder: r.sort_order,
 });
@@ -58,6 +76,8 @@ const mapTest = (r: any): MedicalTest => ({
   fastingRequired: r.fasting_required,
   fastingHours: r.fasting_hours,
   reportDeliveryHrs: r.report_delivery_hrs,
+  consumableFee: r.consumable_fee ?? 0,
+  isGovernmentRate: r.is_government_rate ?? false,
   isPopular: r.is_popular,
   isActive: r.is_active,
   sortOrder: r.sort_order,
@@ -69,6 +89,19 @@ const mapPrice = (r: any): TestPrice => ({
   diagnosticCenterId: r.diagnostic_center_id,
   price: r.price,
   discountedPrice: r.discounted_price,
+  discountType: (r.discount_type ?? "none") as DiscountType,
+  discountValue: Number(r.discount_value ?? 0),
+  notes: r.notes,
+  isAvailable: r.is_available,
+});
+
+const mapChainPrice = (r: any): ChainTestPrice => ({
+  id: r.id,
+  labChainId: r.lab_chain_id,
+  medicalTestId: r.medical_test_id,
+  price: r.price,
+  discountType: (r.discount_type ?? "none") as DiscountType,
+  discountValue: Number(r.discount_value ?? 0),
   notes: r.notes,
   isAvailable: r.is_available,
 });
@@ -85,10 +118,12 @@ const mapThana = (r: any): Thana => ({
 
 async function loadCatalog(includeInactive: boolean): Promise<Catalog> {
   const sb = publicClient();
-  const [centers, tests, prices, thanas, settings] = await Promise.all([
+  const [chains, centers, tests, prices, chainPrices, thanas, settings] = await Promise.all([
+    sb.from("lab_chains").select("*").order("sort_order"),
     sb.from("diagnostic_centers").select("*").order("sort_order"),
     sb.from("medical_tests").select("*").order("sort_order"),
     sb.from("test_prices").select("*"),
+    sb.from("chain_test_prices").select("*"),
     sb.from("thanas").select("*").order("sort_order"),
     sb.from("site_settings").select("*").eq("key", "general").maybeSingle(),
   ]);
@@ -97,9 +132,11 @@ async function loadCatalog(includeInactive: boolean): Promise<Catalog> {
     includeInactive ? rows : rows.filter((r) => r.isActive);
 
   return {
+    chains: keep((chains.data ?? []).map(mapChain)),
     centers: keep((centers.data ?? []).map(mapCenter)),
     tests: keep((tests.data ?? []).map(mapTest)),
     prices: (prices.data ?? []).map(mapPrice),
+    chainPrices: (chainPrices.data ?? []).map(mapChainPrice),
     thanas: keep((thanas.data ?? []).map(mapThana)),
     settings: {
       ...emptyCatalog.settings,
@@ -169,21 +206,20 @@ export const syncProfile = createServerFn({ method: "POST" })
 
 type Row = Record<string, unknown>;
 
-const table = (name: "medical_tests" | "diagnostic_centers" | "test_prices" | "thanas") => name;
+export type AdminTable =
+  | "medical_tests"
+  | "diagnostic_centers"
+  | "test_prices"
+  | "thanas"
+  | "lab_chains";
 
 export const saveRecord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (d: {
-      table: "medical_tests" | "diagnostic_centers" | "test_prices" | "thanas";
-      id?: string | null;
-      values: Row;
-    }) => d,
-  )
+  .inputValidator((d: { table: AdminTable; id?: string | null; values: Row }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const t: any = context.supabase.from(table(data.table));
+    const t: any = context.supabase.from(data.table);
     if (data.id) {
       const { error } = await t.update(data.values).eq("id", data.id);
       if (error) throw new Error(error.message);
@@ -196,56 +232,164 @@ export const saveRecord = createServerFn({ method: "POST" })
 
 export const deleteRecord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (d: {
-      table: "medical_tests" | "diagnostic_centers" | "test_prices" | "thanas";
-      id: string;
-    }) => d,
-  )
+  .inputValidator((d: { table: AdminTable; id: string }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { error } = await context.supabase.from(table(data.table)).delete().eq("id", data.id);
+    const { error } = await context.supabase.from(data.table).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-export const upsertPrice = createServerFn({ method: "POST" })
+export interface PriceInput {
+  medicalTestId: string;
+  price: number;
+  discountType: DiscountType;
+  discountValue: number;
+  notes?: string | null;
+  isAvailable: boolean;
+}
+
+/** Saves one or many rows, either on the chain template or as branch overrides. */
+export const savePrices = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: { scope: "chain" | "branch"; targetId: string; rows: PriceInput[] }) => d,
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    if (!data.rows.length) return { saved: 0 };
+
+    if (data.scope === "chain") {
+      const { error } = await context.supabase.from("chain_test_prices").upsert(
+        data.rows.map((r) => ({
+          lab_chain_id: data.targetId,
+          medical_test_id: r.medicalTestId,
+          price: r.price,
+          discount_type: r.discountType,
+          discount_value: r.discountValue,
+          notes: r.notes ?? null,
+          is_available: r.isAvailable,
+        })),
+        { onConflict: "lab_chain_id,medical_test_id" },
+      );
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await context.supabase.from("test_prices").upsert(
+        data.rows.map((r) => ({
+          diagnostic_center_id: data.targetId,
+          medical_test_id: r.medicalTestId,
+          price: r.price,
+          discount_type: r.discountType,
+          discount_value: r.discountValue,
+          discounted_price: applyDiscount(r.price, r.discountType, r.discountValue) || null,
+          notes: r.notes ?? null,
+          is_available: r.isAvailable,
+        })),
+        { onConflict: "medical_test_id,diagnostic_center_id" },
+      );
+      if (error) throw new Error(error.message);
+    }
+    return { saved: data.rows.length };
+  });
+
+/** Removes branch overrides so those tests fall back to the chain template. */
+export const resetToChainDefault = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { centerId: string; testIds: string[] }) => d)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    if (!data.testIds.length) return { removed: 0 };
+    const { error } = await context.supabase
+      .from("test_prices")
+      .delete()
+      .eq("diagnostic_center_id", data.centerId)
+      .in("medical_test_id", data.testIds);
+    if (error) throw new Error(error.message);
+    return { removed: data.testIds.length };
+  });
+
+/** Bulk actions on selected tests, at chain-template or branch level. */
+export const bulkPriceAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     (d: {
-      medicalTestId: string;
-      diagnosticCenterId: string;
-      price: number;
-      discountedPrice?: number | null;
-      notes?: string | null;
-      isAvailable: boolean;
+      scope: "chain" | "branch";
+      targetId: string;
+      testIds: string[];
+      action: "adjust" | "discount" | "availability" | "delete";
+      percent?: number;
+      discountType?: DiscountType;
+      discountValue?: number;
+      isAvailable?: boolean;
     }) => d,
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const { error } = await context.supabase.from("test_prices").upsert(
-      {
-        medical_test_id: data.medicalTestId,
-        diagnostic_center_id: data.diagnosticCenterId,
-        price: data.price,
-        discounted_price: data.discountedPrice ?? null,
-        notes: data.notes ?? null,
-        is_available: data.isAvailable,
-      },
-      { onConflict: "medical_test_id,diagnostic_center_id" },
-    );
+    if (!data.testIds.length) return { affected: 0 };
+
+    const table = data.scope === "chain" ? "chain_test_prices" : "test_prices";
+    const keyCol = data.scope === "chain" ? "lab_chain_id" : "diagnostic_center_id";
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const tbl = () => context.supabase.from(table) as any;
+    const base = () => tbl().eq(keyCol, data.targetId);
+
+    if (data.action === "delete") {
+      const { error } = await tbl()
+        .delete()
+        .eq(keyCol, data.targetId)
+        .in("medical_test_id", data.testIds);
+
+      if (error) throw new Error(error.message);
+      return { affected: data.testIds.length };
+    }
+
+    if (data.action === "availability") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (context.supabase.from(table) as any)
+        .update({ is_available: Boolean(data.isAvailable) })
+        .eq(keyCol, data.targetId)
+        .in("medical_test_id", data.testIds);
+      if (error) throw new Error(error.message);
+      return { affected: data.testIds.length };
+    }
+
+    if (data.action === "discount") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (context.supabase.from(table) as any)
+        .update({
+          discount_type: data.discountType ?? "none",
+          discount_value: data.discountValue ?? 0,
+        })
+        .eq(keyCol, data.targetId)
+        .in("medical_test_id", data.testIds);
+      if (error) throw new Error(error.message);
+      return { affected: data.testIds.length };
+    }
+
+    // adjust base price by a percentage
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: rows, error } = await (base() as any)
+      .select("id, price")
+      .in("medical_test_id", data.testIds);
     if (error) throw new Error(error.message);
-    return { ok: true };
+    const factor = 1 + (data.percent ?? 0) / 100;
+    for (const r of rows ?? []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (context.supabase.from(table) as any)
+        .update({ price: Math.max(0, Math.round((r.price * factor) / 10) * 10) })
+        .eq("id", r.id);
+    }
+    return { affected: rows?.length ?? 0 };
   });
 
+/** Legacy percent adjust kept for the simple toolbar. */
 export const bulkAdjustPrices = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (d: { centerId?: string | null; testId?: string | null; percent: number }) => d,
-  )
+  .inputValidator((d: { centerId?: string | null; testId?: string | null; percent: number }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    let q = context.supabase.from("test_prices").select("id, price, discounted_price");
+    let q = context.supabase.from("test_prices").select("id, price");
     if (data.centerId) q = q.eq("diagnostic_center_id", data.centerId);
     if (data.testId) q = q.eq("medical_test_id", data.testId);
     const { data: rows, error } = await q;
@@ -254,15 +398,60 @@ export const bulkAdjustPrices = createServerFn({ method: "POST" })
     for (const r of rows ?? []) {
       await context.supabase
         .from("test_prices")
-        .update({
-          price: Math.max(0, Math.round((r.price * factor) / 10) * 10),
-          discounted_price: r.discounted_price
-            ? Math.max(0, Math.round((r.discounted_price * factor) / 10) * 10)
-            : null,
-        })
+        .update({ price: Math.max(0, Math.round((r.price * factor) / 10) * 10) })
         .eq("id", r.id);
     }
     return { updated: rows?.length ?? 0 };
+  });
+
+/** "Push to all branches in this chain" — fees and/or the price template. */
+export const pushChainToBranches = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: {
+      chainId: string;
+      what: "fee" | "prices" | "both";
+      overwriteOverrides: boolean;
+      testIds?: string[];
+    }) => d,
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+
+    const { data: branches, error: bErr } = await context.supabase
+      .from("diagnostic_centers")
+      .select("id")
+      .eq("lab_chain_id", data.chainId);
+    if (bErr) throw new Error(bErr.message);
+    const branchIds = (branches ?? []).map((b: { id: string }) => b.id);
+    if (!branchIds.length) return { branches: 0, prices: 0 };
+
+    let pricesTouched = 0;
+
+    if (data.what === "fee" || data.what === "both") {
+      // Clearing the override puts a branch back on the chain default.
+      let q = context.supabase
+        .from("diagnostic_centers")
+        .update({ sample_collection_fee_override: null, home_sample_override: null })
+        .eq("lab_chain_id", data.chainId);
+      if (!data.overwriteOverrides) q = q.is("sample_collection_fee_override", null);
+      const { error } = await q;
+      if (error) throw new Error(error.message);
+    }
+
+    if (data.what === "prices" || data.what === "both") {
+      if (data.overwriteOverrides) {
+        // Every branch goes back to the template.
+        let del = context.supabase.from("test_prices").delete().in("diagnostic_center_id", branchIds);
+        if (data.testIds?.length) del = del.in("medical_test_id", data.testIds);
+        const { error } = await del;
+        if (error) throw new Error(error.message);
+        pricesTouched = branchIds.length;
+      }
+      // Branches with no override already follow the template — nothing to write.
+    }
+
+    return { branches: branchIds.length, prices: pricesTouched };
   });
 
 export const saveSettings = createServerFn({ method: "POST" })

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import { TestSearch } from "@/components/TestSearch";
-import { effectivePrice } from "@/data/seed";
 import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
@@ -29,13 +28,14 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const lang = useAppStore((s) => s.lang);
-  const { tests, prices, centers, settings } = useCatalog();
+  const { tests, centers, settings, pricesForTest } = useCatalog();
 
   const popularTests = tests.filter((x) => x.isPopular).slice(0, 6);
   const lowestTotal = (testId: string) => {
-    const rows = prices.filter((p) => p.medicalTestId === testId && p.isAvailable);
-    return rows.length ? Math.min(...rows.map(effectivePrice)) : 0;
+    const rows = pricesForTest(testId);
+    return rows.length ? Math.min(...rows.map((r) => r.finalPrice)) : 0;
   };
+
 
   return (
     <main>

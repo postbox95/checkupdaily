@@ -2,16 +2,22 @@ import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@ta
 import { toast } from "sonner";
 import {
   bulkAdjustPrices,
+  bulkPriceAction,
   deleteRecord,
   getAdminCatalog,
   getMyAccess,
   listStaff,
+  pushChainToBranches,
+  resetToChainDefault,
   saveRecord,
+  savePrices,
   saveSettings,
   setUserRole,
-  upsertPrice,
+  type AdminTable,
+  type PriceInput,
 } from "./catalog.functions";
 import { decorate } from "./catalog";
+import type { DiscountType } from "@/data/seed";
 
 export const adminCatalogQuery = queryOptions({
   queryKey: ["admin", "catalog"],
@@ -41,8 +47,6 @@ export function useAdminInvalidate() {
   };
 }
 
-type AdminTable = "medical_tests" | "diagnostic_centers" | "test_prices" | "thanas";
-
 export function useSaveRecord(onDone?: () => void) {
   const invalidate = useAdminInvalidate();
   return useMutation({
@@ -69,18 +73,65 @@ export function useDeleteRecord() {
   });
 }
 
-export function useUpsertPrice() {
+export function useSavePrices() {
+  const invalidate = useAdminInvalidate();
+  return useMutation({
+    mutationFn: (input: { scope: "chain" | "branch"; targetId: string; rows: PriceInput[] }) =>
+      savePrices({ data: input }),
+    onSuccess: (r) => {
+      toast.success(`Saved ${r.saved} price row${r.saved === 1 ? "" : "s"}`);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useResetToChainDefault() {
+  const invalidate = useAdminInvalidate();
+  return useMutation({
+    mutationFn: (input: { centerId: string; testIds: string[] }) =>
+      resetToChainDefault({ data: input }),
+    onSuccess: () => {
+      toast.success("Reset to chain default");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useBulkPriceAction() {
   const invalidate = useAdminInvalidate();
   return useMutation({
     mutationFn: (input: {
-      medicalTestId: string;
-      diagnosticCenterId: string;
-      price: number;
-      discountedPrice?: number | null;
-      notes?: string | null;
-      isAvailable: boolean;
-    }) => upsertPrice({ data: input }),
-    onSuccess: () => invalidate(),
+      scope: "chain" | "branch";
+      targetId: string;
+      testIds: string[];
+      action: "adjust" | "discount" | "availability" | "delete";
+      percent?: number;
+      discountType?: DiscountType;
+      discountValue?: number;
+      isAvailable?: boolean;
+    }) => bulkPriceAction({ data: input }),
+    onSuccess: (r) => {
+      toast.success(`Updated ${r.affected} row${r.affected === 1 ? "" : "s"}`);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function usePushChain() {
+  const invalidate = useAdminInvalidate();
+  return useMutation({
+    mutationFn: (input: {
+      chainId: string;
+      what: "fee" | "prices" | "both";
+      overwriteOverrides: boolean;
+    }) => pushChainToBranches({ data: input }),
+    onSuccess: (r) => {
+      toast.success(`Pushed to ${r.branches} branch${r.branches === 1 ? "" : "es"}`);
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 }
