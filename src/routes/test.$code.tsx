@@ -2,7 +2,7 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Info, Phone, Plus, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { distanceKm, effectivePrice } from "@/data/seed";
+import { distanceKm } from "@/data/seed";
 import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
 import { redundancyWarning } from "@/lib/search";
 import { t } from "@/lib/i18n";

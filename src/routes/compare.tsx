@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Printer, Share2, Trophy, TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
-import { distanceKm, effectivePrice } from "@/data/seed";
+import { distanceKm } from "@/data/seed";
 import { useCatalog } from "@/lib/catalog";
 import { bdt, useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
