@@ -171,10 +171,11 @@ function ComparePage() {
                     ))}
                     <div className="flex justify-between gap-4">
                       <dt className="text-muted-foreground">
-                        Mandatory needle, tube & registration charge
+                        Registration / sample collection charge (once per visit)
                       </dt>
-                      <dd className="font-semibold">{bdt(r.center.sampleCollectionFee)}</dd>
+                      <dd className="font-semibold">{bdt(r.fee)}</dd>
                     </div>
+
                     <div className="mt-2 flex justify-between gap-4 border-t border-border pt-2">
                       <dt className="font-bold">Total out-of-pocket bill</dt>
                       <dd className="font-extrabold text-primary">{bdt(r.total)}</dd>
