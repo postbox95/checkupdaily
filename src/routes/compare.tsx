@@ -33,23 +33,22 @@ export const Route = createFileRoute("/compare")({
 
 function ComparePage() {
   const { cart, thana } = useAppStore();
-  const { centers, prices, testById, thanaCoords } = useCatalog();
+  const { centers, testById, thanaCoords, branchFee, resolvePrice } = useCatalog();
   const origin = thanaCoords[thana] ?? Object.values(thanaCoords)[0] ?? { lat: 23.75, lng: 90.39 };
 
   const results = useMemo(() => {
     return centers
       .map((center) => {
-        let total = center.sampleCollectionFee;
+        const fee = branchFee(center);
+        let total = fee;
         const items: { name: string; cost: number }[] = [];
         const missing: string[] = [];
         for (const testId of cart) {
           const test = testById(testId);
           if (!test) continue;
-          const row = prices.find(
-            (p) => p.medicalTestId === testId && p.diagnosticCenterId === center.id && p.isAvailable,
-          );
-          if (row) {
-            const cost = effectivePrice(row);
+          const row = resolvePrice(testId, center.id);
+          if (row?.isAvailable) {
+            const cost = row.finalPrice + test.consumableFee;
             total += cost;
             items.push({ name: test.canonicalName, cost });
           } else {
@@ -58,6 +57,7 @@ function ComparePage() {
         }
         return {
           center,
+          fee,
           total,
           items,
           missing,
@@ -66,7 +66,8 @@ function ComparePage() {
         };
       })
       .sort((a, b) => b.covered - a.covered || a.total - b.total);
-  }, [cart, origin, centers, prices, testById]);
+  }, [cart, origin, centers, testById, resolvePrice, branchFee]);
+
 
   if (cart.length === 0) {
     return (
