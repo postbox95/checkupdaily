@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,15 +9,26 @@ import {
   staffQuery,
   useAdminCatalog,
   useAdminInvalidate,
-  useBulkAdjust,
+  useBulkPriceAction,
   useDeleteRecord,
+  usePushChain,
+  useResetToChainDefault,
+  useSavePrices,
   useSaveRecord,
   useSaveSettings,
   useSetUserRole,
-  useUpsertPrice,
 } from "@/lib/admin";
-import { TEST_CATEGORIES, type DiagnosticCenter, type MedicalTest, type Thana } from "@/data/seed";
+import {
+  TEST_CATEGORIES,
+  type DiagnosticCenter,
+  type DiscountType,
+  type LabChain,
+  type MedicalTest,
+  type Thana,
+} from "@/data/seed";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -28,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Content Manager — Niramoy Prices Admin" },
-      { name: "description", content: "Manage tests, labs, prices, areas and site settings." },
+      { name: "description", content: "Manage chains, tests, labs, prices, areas and settings." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Content Manager — Niramoy Prices Admin" },
       { property: "og:description", content: "Admin CMS for the Niramoy Prices catalogue." },
@@ -82,8 +93,8 @@ function AdminShell() {
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">Content Manager</h1>
           <p className="text-sm text-muted-foreground">
-            {catalog.tests.length} tests · {catalog.centers.length} labs · {catalog.prices.length}{" "}
-            price rows · {catalog.thanas.length} areas
+            {catalog.chains.length} chains · {catalog.tests.length} tests · {catalog.centers.length}{" "}
+            branches · {catalog.prices.length} overrides · {catalog.thanas.length} areas
           </p>
         </div>
         <div className="ml-auto flex gap-2">
@@ -103,21 +114,25 @@ function AdminShell() {
         </div>
       </header>
 
-      <Tabs defaultValue="tests" className="mt-6">
+      <Tabs defaultValue="chains" className="mt-6">
         <TabsList className="flex-wrap">
+          <TabsTrigger value="chains">Lab chains</TabsTrigger>
           <TabsTrigger value="tests">Tests</TabsTrigger>
-          <TabsTrigger value="labs">Labs</TabsTrigger>
+          <TabsTrigger value="labs">Branches</TabsTrigger>
           <TabsTrigger value="prices">Price matrix</TabsTrigger>
           <TabsTrigger value="areas">Areas</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="chains">
+          <ChainsPanel catalog={catalog} />
+        </TabsContent>
         <TabsContent value="tests">
           <TestsPanel tests={catalog.tests} />
         </TabsContent>
         <TabsContent value="labs">
-          <LabsPanel centers={catalog.centers} thanas={catalog.thanas} />
+          <LabsPanel catalog={catalog} />
         </TabsContent>
         <TabsContent value="prices">
           <PricesPanel catalog={catalog} />
@@ -136,6 +151,138 @@ function AdminShell() {
   );
 }
 
+type Catalog = ReturnType<typeof useAdminCatalog>;
+
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/* --------------------------------- chains --------------------------------- */
+
+function ChainsPanel({ catalog }: { catalog: Catalog }) {
+  const [editing, setEditing] = useState<LabChain | null>(null);
+  const [creating, setCreating] = useState(false);
+  const save = useSaveRecord(() => { setEditing(null); setCreating(false); });
+  const del = useDeleteRecord();
+  const push = usePushChain();
+  const [pushOverwrite, setPushOverwrite] = useState<Record<string, boolean>>({});
+
+  const initial = editing
+    ? {
+        name: editing.name,
+        slug: editing.slug,
+        logo_url: editing.logoUrl,
+        default_sample_collection_fee: editing.defaultSampleCollectionFee,
+        default_home_sample_available: editing.defaultHomeSampleAvailable,
+        is_active: editing.isActive,
+        sort_order: editing.sortOrder,
+      }
+    : {
+        name: "",
+        slug: "",
+        logo_url: "",
+        default_sample_collection_fee: 90,
+        default_home_sample_available: true,
+        is_active: true,
+        sort_order: 0,
+      };
+
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="text-sm text-muted-foreground">
+        A chain owns the brand-level defaults: registration/collection fee, home collection, and the
+        shared price template used by every branch that has not set its own override.
+      </p>
+      <Button size="sm" onClick={() => { setCreating(true); setEditing(null); }}>+ New chain</Button>
+
+      {(creating || editing) && (
+        <RecordForm
+          key={editing?.id ?? "new-chain"}
+          initial={initial}
+          fields={[
+            { name: "name", label: "Chain name" },
+            { name: "slug", label: "Slug (unique)" },
+            { name: "logo_url", label: "Logo URL" },
+            { name: "default_sample_collection_fee", label: "Default registration/collection fee", type: "number" },
+            { name: "default_home_sample_available", label: "Home collection by default", type: "boolean" },
+            { name: "is_active", label: "Published", type: "boolean" },
+            { name: "sort_order", label: "Sort order", type: "number" },
+          ]}
+          onCancel={() => { setCreating(false); setEditing(null); }}
+          onSave={(values) =>
+            save.mutate({
+              table: "lab_chains",
+              id: editing?.id,
+              values: {
+                ...values,
+                slug: String(values.slug || "").trim() || slugify(String(values.name || "")),
+              },
+            })
+          }
+        />
+      )}
+
+      <div className="surface-card divide-y divide-border">
+        {catalog.chains.map((ch) => {
+          const branches = catalog.branchesOfChain(ch.id);
+          const overrides = branches.filter((b) => b.sampleCollectionFeeOverride !== null).length;
+          const overwrite = pushOverwrite[ch.id] ?? false;
+          return (
+            <div key={ch.id} className="space-y-2 p-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {ch.logoUrl && (
+                  <img src={ch.logoUrl} alt={`${ch.name} logo`} className="size-8 rounded object-contain" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">
+                    {ch.name}{" "}
+                    {!ch.isActive && <span className="text-xs text-destructive">(hidden)</span>}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {branches.length} branches · default fee ৳{ch.defaultSampleCollectionFee} ·{" "}
+                    {overrides} branch fee override{overrides === 1 ? "" : "s"} ·{" "}
+                    {ch.defaultHomeSampleAvailable ? "home collection on" : "no home collection"}
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => { setEditing(ch); setCreating(false); }}>
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => confirm(`Delete chain ${ch.name}? Branches keep their own data.`) && del.mutate({ table: "lab_chains", id: ch.id })}
+                >
+                  Delete
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 p-2 text-xs">
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={overwrite}
+                    onCheckedChange={(v) => setPushOverwrite((s) => ({ ...s, [ch.id]: Boolean(v) }))}
+                  />
+                  Overwrite branches that have their own override
+                </label>
+                <span className="text-muted-foreground">
+                  {overwrite ? "All branches will be reset to chain defaults." : "Only branches still on the default are touched."}
+                </span>
+                <div className="ml-auto flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "fee", overwriteOverrides: overwrite })}>
+                    Push fee to all branches
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "prices", overwriteOverrides: overwrite })}>
+                    Push price template
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* --------------------------------- tests --------------------------------- */
 
 const emptyTest = {
@@ -149,6 +296,8 @@ const emptyTest = {
   fasting_required: false,
   fasting_hours: "",
   report_delivery_hrs: 24,
+  consumable_fee: 0,
+  is_government_rate: false,
   is_popular: false,
   is_active: true,
   sort_order: 0,
@@ -175,6 +324,8 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
         fasting_required: editing.fastingRequired,
         fasting_hours: editing.fastingHours ?? "",
         report_delivery_hrs: editing.reportDeliveryHrs,
+        consumable_fee: editing.consumableFee,
+        is_government_rate: editing.isGovernmentRate,
         is_popular: editing.isPopular,
         is_active: editing.isActive,
         sort_order: editing.sortOrder,
@@ -202,6 +353,8 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
             { name: "fasting_required", label: "Fasting required", type: "boolean" },
             { name: "fasting_hours", label: "Fasting hours", type: "number" },
             { name: "report_delivery_hrs", label: "Report delivery (hrs)", type: "number" },
+            { name: "consumable_fee", label: "Needle / tube charge for this test (0 for MRI, X-ray…)", type: "number" },
+            { name: "is_government_rate", label: "Government rate (never discounted)", type: "boolean" },
             { name: "is_popular", label: "Show on homepage", type: "boolean" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
@@ -232,7 +385,8 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
                 {t.canonicalName} {!t.isActive && <span className="text-xs text-destructive">(hidden)</span>}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {t.code} · {t.category} · {t.banglaName}
+                {t.code} · {t.category} · needle/tube ৳{t.consumableFee}
+                {t.isGovernmentRate ? " · government rate" : ""}
               </p>
             </div>
             <Button size="sm" variant="outline" onClick={() => { setEditing(t); setCreating(false); }}>
@@ -254,54 +408,70 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
 
 /* ---------------------------------- labs ---------------------------------- */
 
-function LabsPanel({ centers, thanas }: { centers: DiagnosticCenter[]; thanas: Thana[] }) {
+function LabsPanel({ catalog }: { catalog: Catalog }) {
+  const { centers, thanas, chains } = catalog;
   const [editing, setEditing] = useState<DiagnosticCenter | null>(null);
   const [creating, setCreating] = useState(false);
   const save = useSaveRecord(() => { setEditing(null); setCreating(false); });
   const del = useDeleteRecord();
 
+  const chainOptions = chains.map((c) => ({ value: c.id, label: c.name }));
+
   const initial = editing
     ? {
-        slug: editing.slug,
-        name: editing.name,
+        lab_chain_id: editing.labChainId ?? "",
         branch_name: editing.branchName,
+        slug: editing.slug,
         thana: editing.thana,
         city: editing.city,
         address: editing.address,
         latitude: editing.latitude,
         longitude: editing.longitude,
         contact_phone: editing.contactPhone,
-        sample_collection_fee: editing.sampleCollectionFee,
-        home_sample_available: editing.homeSampleAvailable,
+        fee_mode: editing.sampleCollectionFeeOverride === null ? "inherit" : "override",
+        sample_collection_fee_override: editing.sampleCollectionFeeOverride ?? 0,
+        home_mode: editing.homeSampleOverride === null ? "inherit" : "override",
+        home_sample_override: editing.homeSampleOverride ?? true,
         is_active: editing.isActive,
         sort_order: editing.sortOrder,
       }
     : {
-        slug: "",
-        name: "",
+        lab_chain_id: chains[0]?.id ?? "",
         branch_name: "",
+        slug: "",
         thana: thanas[0]?.name ?? "",
         city: "Dhaka",
         address: "",
         latitude: 23.75,
         longitude: 90.39,
         contact_phone: "",
-        sample_collection_fee: 100,
-        home_sample_available: true,
+        fee_mode: "inherit",
+        sample_collection_fee_override: 100,
+        home_mode: "inherit",
+        home_sample_override: true,
         is_active: true,
         sort_order: 0,
       };
 
   return (
     <div className="mt-4 space-y-4">
-      <Button size="sm" onClick={() => { setCreating(true); setEditing(null); }}>+ New lab branch</Button>
+      <p className="text-sm text-muted-foreground">
+        Branches always own their address, phone, coordinates and area. Fee and home collection
+        either inherit the chain default or carry an explicit override.
+      </p>
+      <Button size="sm" disabled={!chains.length} onClick={() => { setCreating(true); setEditing(null); }}>
+        + New branch
+      </Button>
+      {!chains.length && (
+        <p className="text-xs text-destructive">Create a lab chain first — branches belong to a chain.</p>
+      )}
 
       {(creating || editing) && (
         <RecordForm
           key={editing?.id ?? "new"}
           initial={initial}
           fields={[
-            { name: "name", label: "Chain name" },
+            { name: "lab_chain_id", label: "Chain", valueOptions: chainOptions },
             { name: "branch_name", label: "Branch name" },
             { name: "slug", label: "Slug (unique)" },
             { name: "thana", label: "Area / thana", options: thanas.map((t) => t.name) },
@@ -310,112 +480,90 @@ function LabsPanel({ centers, thanas }: { centers: DiagnosticCenter[]; thanas: T
             { name: "latitude", label: "Latitude", type: "number" },
             { name: "longitude", label: "Longitude", type: "number" },
             { name: "contact_phone", label: "Contact phone" },
-            { name: "sample_collection_fee", label: "Needle/tube/registration fee", type: "number" },
-            { name: "home_sample_available", label: "Home collection", type: "boolean" },
+            {
+              name: "fee_mode",
+              label: "Registration/collection fee",
+              valueOptions: [
+                { value: "inherit", label: "Use chain default" },
+                { value: "override", label: "Override for this branch" },
+              ],
+            },
+            { name: "sample_collection_fee_override", label: "Branch fee (৳)", type: "number" },
+            {
+              name: "home_mode",
+              label: "Home collection",
+              valueOptions: [
+                { value: "inherit", label: "Use chain default" },
+                { value: "override", label: "Override for this branch" },
+              ],
+            },
+            { name: "home_sample_override", label: "Home collection at this branch", type: "boolean" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
           ]}
           onCancel={() => { setCreating(false); setEditing(null); }}
-          onSave={(values) => save.mutate({ table: "diagnostic_centers", id: editing?.id, values })}
+          onSave={(values) => {
+            const chain = chains.find((c) => c.id === values.lab_chain_id);
+            const feeOverride =
+              values.fee_mode === "override" ? Number(values.sample_collection_fee_override) : null;
+            const homeOverride =
+              values.home_mode === "override" ? Boolean(values.home_sample_override) : null;
+            save.mutate({
+              table: "diagnostic_centers",
+              id: editing?.id,
+              values: {
+                lab_chain_id: values.lab_chain_id || null,
+                name: chain?.name ?? "",
+                branch_name: values.branch_name,
+                slug:
+                  String(values.slug || "").trim() ||
+                  slugify(`${chain?.name ?? ""}-${values.branch_name}`),
+                thana: values.thana,
+                city: values.city,
+                address: values.address,
+                latitude: Number(values.latitude),
+                longitude: Number(values.longitude),
+                contact_phone: values.contact_phone,
+                sample_collection_fee_override: feeOverride,
+                sample_collection_fee: feeOverride ?? chain?.defaultSampleCollectionFee ?? 0,
+                home_sample_override: homeOverride,
+                home_sample_available: homeOverride ?? chain?.defaultHomeSampleAvailable ?? true,
+                is_active: values.is_active,
+                sort_order: Number(values.sort_order),
+              },
+            });
+          }}
         />
       )}
 
       <div className="surface-card divide-y divide-border">
-        {centers.map((c) => (
-          <div key={c.id} className="flex flex-wrap items-center gap-3 p-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">
-                {c.name} — {c.branchName} {!c.isActive && <span className="text-xs text-destructive">(hidden)</span>}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {c.thana} · fee ৳{c.sampleCollectionFee} · {c.contactPhone}
-              </p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => { setEditing(c); setCreating(false); }}>Edit</Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => confirm(`Delete ${c.branchName}?`) && del.mutate({ table: "diagnostic_centers", id: c.id })}
-            >
-              Delete
-            </Button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------- prices ---------------------------------- */
-
-function PricesPanel({ catalog }: { catalog: ReturnType<typeof useAdminCatalog> }) {
-  const [centerId, setCenterId] = useState(catalog.centers[0]?.id ?? "");
-  const [percent, setPercent] = useState(0);
-  const upsert = useUpsertPrice();
-  const bulk = useBulkAdjust();
-
-  const center = catalog.centerById(centerId);
-
-  return (
-    <div className="mt-4 space-y-4">
-      <div className="surface-card flex flex-wrap items-end gap-3 p-4">
-        <div>
-          <Label>Lab branch</Label>
-          <select
-            className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
-            value={centerId}
-            onChange={(e) => setCenterId(e.target.value)}
-          >
-            {catalog.centers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} — {c.branchName}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <Label>Bulk adjust all prices (%)</Label>
-          <Input
-            type="number"
-            className="mt-1 w-32"
-            value={percent}
-            onChange={(e) => setPercent(Number(e.target.value))}
-          />
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => bulk.mutate({ centerId, percent })}
-          disabled={!percent}
-        >
-          Apply to {center?.branchName}
-        </Button>
-      </div>
-
-      <div className="surface-card divide-y divide-border">
-        {catalog.tests.map((t) => {
-          const row = catalog.prices.find(
-            (p) => p.medicalTestId === t.id && p.diagnosticCenterId === centerId,
-          );
+        {centers.map((c) => {
+          const chain = c.labChainId ? catalog.chainById(c.labChainId) : undefined;
+          const inheritedFee = c.sampleCollectionFeeOverride === null;
           return (
-            <PriceRow
-              key={t.id + centerId}
-              testName={t.canonicalName}
-              price={row?.price ?? 0}
-              discounted={row?.discountedPrice ?? null}
-              notes={row?.notes ?? ""}
-              available={row?.isAvailable ?? false}
-              onSave={(v) =>
-                upsert.mutate({
-                  medicalTestId: t.id,
-                  diagnosticCenterId: centerId,
-                  price: v.price,
-                  discountedPrice: v.discounted,
-                  notes: v.notes || null,
-                  isAvailable: v.available,
-                })
-              }
-            />
+            <div key={c.id} className="flex flex-wrap items-center gap-3 p-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">
+                  {chain?.name ?? c.name} — {c.branchName}{" "}
+                  {!c.isActive && <span className="text-xs text-destructive">(hidden)</span>}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {c.thana} · fee ৳{catalog.branchFee(c)}{" "}
+                  <Badge variant={inheritedFee ? "secondary" : "default"} className="ml-1 align-middle text-[10px]">
+                    {inheritedFee ? "inherited" : "custom"}
+                  </Badge>{" "}
+                  · {c.contactPhone}
+                </p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => { setEditing(c); setCreating(false); }}>Edit</Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => confirm(`Delete ${c.branchName}?`) && del.mutate({ table: "diagnostic_centers", id: c.id })}
+              >
+                Delete
+              </Button>
+            </div>
           );
         })}
       </div>
@@ -423,45 +571,297 @@ function PricesPanel({ catalog }: { catalog: ReturnType<typeof useAdminCatalog> 
   );
 }
 
-function PriceRow({
-  testName,
-  price,
-  discounted,
-  notes,
-  available,
-  onSave,
-}: {
-  testName: string;
+/* -------------------------------- prices ---------------------------------- */
+
+interface DraftRow {
   price: number;
-  discounted: number | null;
+  discountType: DiscountType;
+  discountValue: number;
   notes: string;
-  available: boolean;
-  onSave: (v: { price: number; discounted: number | null; notes: string; available: boolean }) => void;
-}) {
-  const [p, setP] = useState(price);
-  const [d, setD] = useState(discounted ?? ("" as number | ""));
-  const [n, setN] = useState(notes);
-  const [a, setA] = useState(available);
+  isAvailable: boolean;
+  inherited: boolean;
+  exists: boolean;
+}
+
+function PricesPanel({ catalog }: { catalog: Catalog }) {
+  const [scope, setScope] = useState<"chain" | "branch">("chain");
+  const [chainId, setChainId] = useState(catalog.chains[0]?.id ?? "");
+  const [centerId, setCenterId] = useState(catalog.centers[0]?.id ?? "");
+  const targetId = scope === "chain" ? chainId : centerId;
+
+  const savePrices = useSavePrices();
+  const bulk = useBulkPriceAction();
+  const reset = useResetToChainDefault();
+
+  const [selected, setSelected] = useState<string[]>([]);
+  const [percent, setPercent] = useState(0);
+  const [bulkDiscType, setBulkDiscType] = useState<DiscountType>("percent");
+  const [bulkDiscValue, setBulkDiscValue] = useState(0);
+
+  const baseRows = useMemo(() => {
+    const map: Record<string, DraftRow> = {};
+    for (const t of catalog.tests) {
+      if (scope === "chain") {
+        const row = catalog.chainPrices.find(
+          (p) => p.medicalTestId === t.id && p.labChainId === chainId,
+        );
+        map[t.id] = {
+          price: row?.price ?? 0,
+          discountType: row?.discountType ?? "none",
+          discountValue: row?.discountValue ?? 0,
+          notes: row?.notes ?? "",
+          isAvailable: row?.isAvailable ?? false,
+          inherited: false,
+          exists: Boolean(row),
+        };
+      } else {
+        const resolved = catalog.resolvePrice(t.id, centerId);
+        map[t.id] = {
+          price: resolved?.price ?? 0,
+          discountType: resolved?.discountType ?? "none",
+          discountValue: resolved?.discountValue ?? 0,
+          notes: resolved?.notes ?? "",
+          isAvailable: resolved?.isAvailable ?? false,
+          inherited: resolved?.inherited ?? true,
+          exists: Boolean(resolved),
+        };
+      }
+    }
+    return map;
+  }, [catalog, scope, chainId, centerId]);
+
+  const [draft, setDraft] = useState<Record<string, DraftRow>>({});
+  const key = `${scope}:${targetId}`;
+  const [loadedKey, setLoadedKey] = useState(key);
+  if (loadedKey !== key) {
+    setLoadedKey(key);
+    setDraft({});
+    setSelected([]);
+  }
+
+  const rowOf = (testId: string) => draft[testId] ?? baseRows[testId];
+  const setRow = (testId: string, patch: Partial<DraftRow>) =>
+    setDraft((d) => ({ ...d, [testId]: { ...rowOf(testId), ...patch } }));
+
+  const dirtyIds = Object.keys(draft);
+  const allSelected = selected.length === catalog.tests.length && selected.length > 0;
+
+  const saveAll = () => {
+    const rows = dirtyIds.map((id) => ({
+      medicalTestId: id,
+      price: rowOf(id).price,
+      discountType: rowOf(id).discountType,
+      discountValue: rowOf(id).discountValue,
+      notes: rowOf(id).notes || null,
+      isAvailable: rowOf(id).isAvailable,
+    }));
+    if (!rows.length) return toast.info("No changes to save.");
+    savePrices.mutate(
+      { scope, targetId, rows },
+      { onSuccess: () => setDraft({}) },
+    );
+  };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 p-3">
-      <span className="min-w-48 flex-1 text-sm font-medium">{testName}</span>
-      <Input className="w-24" type="number" value={p} onChange={(e) => setP(Number(e.target.value))} aria-label="Price" />
-      <Input
-        className="w-24"
-        type="number"
-        placeholder="disc."
-        value={d}
-        onChange={(e) => setD(e.target.value === "" ? "" : Number(e.target.value))}
-        aria-label="Discounted price"
-      />
-      <Input className="w-44" placeholder="notes" value={n} onChange={(e) => setN(e.target.value)} aria-label="Notes" />
-      <label className="flex items-center gap-2 text-xs">
-        <Switch checked={a} onCheckedChange={setA} /> Offered
-      </label>
-      <Button size="sm" onClick={() => onSave({ price: p, discounted: d === "" ? null : Number(d), notes: n, available: a })}>
-        Save
-      </Button>
+    <div className="mt-4 space-y-4">
+      <div className="surface-card flex flex-wrap items-end gap-3 p-4">
+        <div>
+          <Label>Edit level</Label>
+          <select
+            className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
+            value={scope}
+            onChange={(e) => setScope(e.target.value as "chain" | "branch")}
+          >
+            <option value="chain">Chain template</option>
+            <option value="branch">Single branch (override)</option>
+          </select>
+        </div>
+        {scope === "chain" ? (
+          <div>
+            <Label>Chain</Label>
+            <select
+              className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
+              value={chainId}
+              onChange={(e) => setChainId(e.target.value)}
+            >
+              {catalog.chains.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <Label>Lab branch</Label>
+            <select
+              className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
+              value={centerId}
+              onChange={(e) => setCenterId(e.target.value)}
+            >
+              {catalog.centers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {(catalog.chainById(c.labChainId ?? "")?.name ?? c.name)} — {c.branchName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        <Button size="sm" onClick={saveAll} disabled={!dirtyIds.length}>
+          Save all changes{dirtyIds.length ? ` (${dirtyIds.length})` : ""}
+        </Button>
+        {Boolean(dirtyIds.length) && (
+          <Button size="sm" variant="ghost" onClick={() => setDraft({})}>Discard</Button>
+        )}
+      </div>
+
+      <div className="surface-card space-y-3 p-4">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 font-semibold">
+            <Checkbox
+              checked={allSelected}
+              onCheckedChange={(v) => setSelected(v ? catalog.tests.map((t) => t.id) : [])}
+            />
+            {selected.length} selected
+          </label>
+          <span className="text-xs text-muted-foreground">Bulk actions apply to selected tests</span>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <div>
+            <Label className="text-xs">Adjust price %</Label>
+            <Input type="number" className="mt-1 w-24" value={percent} onChange={(e) => setPercent(Number(e.target.value))} />
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!selected.length || !percent}
+            onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "adjust", percent })}
+          >
+            Apply adjustment
+          </Button>
+          <div>
+            <Label className="text-xs">Discount</Label>
+            <div className="mt-1 flex gap-2">
+              <select
+                className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+                value={bulkDiscType}
+                onChange={(e) => setBulkDiscType(e.target.value as DiscountType)}
+              >
+                <option value="none">No discount</option>
+                <option value="amount">৳ amount</option>
+                <option value="percent">% percent</option>
+              </select>
+              <Input type="number" className="w-24" value={bulkDiscValue} onChange={(e) => setBulkDiscValue(Number(e.target.value))} />
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!selected.length}
+            onClick={() =>
+              bulk.mutate({ scope, targetId, testIds: selected, action: "discount", discountType: bulkDiscType, discountValue: bulkDiscValue })
+            }
+          >
+            Set discount
+          </Button>
+          <Button size="sm" variant="outline" disabled={!selected.length} onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "availability", isAvailable: true })}>
+            Mark offered
+          </Button>
+          <Button size="sm" variant="outline" disabled={!selected.length} onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "availability", isAvailable: false })}>
+            Mark not offered
+          </Button>
+          {scope === "branch" && (
+            <Button size="sm" variant="outline" disabled={!selected.length} onClick={() => reset.mutate({ centerId, testIds: selected })}>
+              Reset to chain default
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={!selected.length}
+            onClick={() => confirm(`Delete ${selected.length} price rows?`) && bulk.mutate({ scope, targetId, testIds: selected, action: "delete" })}
+          >
+            Delete rows
+          </Button>
+        </div>
+      </div>
+
+      <div className="surface-card divide-y divide-border">
+        {catalog.tests.map((t) => {
+          const r = rowOf(t.id);
+          const dirty = Boolean(draft[t.id]);
+          const final = r.discountType === "percent"
+            ? Math.max(0, Math.round(r.price - (r.price * r.discountValue) / 100))
+            : r.discountType === "amount"
+              ? Math.max(0, Math.round(r.price - r.discountValue))
+              : r.price;
+          return (
+            <div key={t.id} className="flex flex-wrap items-center gap-2 p-3">
+              <Checkbox
+                checked={selected.includes(t.id)}
+                onCheckedChange={(v) =>
+                  setSelected((s) => (v ? [...s, t.id] : s.filter((x) => x !== t.id)))
+                }
+                aria-label={`Select ${t.canonicalName}`}
+              />
+              <span className="min-w-44 flex-1 text-sm font-medium">
+                {t.canonicalName}
+                {t.isGovernmentRate && (
+                  <Badge variant="secondary" className="ml-2 text-[10px]">govt rate</Badge>
+                )}
+                {scope === "branch" && (
+                  <Badge variant={r.inherited ? "secondary" : "default"} className="ml-2 text-[10px]">
+                    {r.inherited ? "inherited" : "custom"}
+                  </Badge>
+                )}
+                {dirty && <span className="ml-2 text-[10px] font-bold text-warning-foreground">unsaved</span>}
+              </span>
+              <Input
+                className="w-24"
+                type="number"
+                value={r.price}
+                onChange={(e) => setRow(t.id, { price: Number(e.target.value) })}
+                aria-label="Price"
+              />
+              <select
+                className="h-9 rounded-md border border-border bg-background px-2 text-sm disabled:opacity-50"
+                value={r.discountType}
+                disabled={t.isGovernmentRate}
+                onChange={(e) => setRow(t.id, { discountType: e.target.value as DiscountType })}
+                aria-label="Discount type"
+              >
+                <option value="none">no disc.</option>
+                <option value="amount">৳</option>
+                <option value="percent">%</option>
+              </select>
+              <Input
+                className="w-20"
+                type="number"
+                value={r.discountValue}
+                disabled={t.isGovernmentRate || r.discountType === "none"}
+                onChange={(e) => setRow(t.id, { discountValue: Number(e.target.value) })}
+                aria-label="Discount value"
+              />
+              <span className="w-20 text-xs font-semibold">
+                = ৳{t.isGovernmentRate ? r.price : final}
+              </span>
+              <Input
+                className="w-36"
+                placeholder="notes"
+                value={r.notes}
+                onChange={(e) => setRow(t.id, { notes: e.target.value })}
+                aria-label="Notes"
+              />
+              <label className="flex items-center gap-2 text-xs">
+                <Switch checked={r.isAvailable} onCheckedChange={(v) => setRow(t.id, { isAvailable: v })} /> Offered
+              </label>
+              {scope === "branch" && !r.inherited && (
+                <Button size="sm" variant="ghost" onClick={() => reset.mutate({ centerId, testIds: [t.id] })}>
+                  Reset
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -599,6 +999,7 @@ interface FieldDef {
   type?: "text" | "number" | "boolean";
   textarea?: boolean;
   options?: readonly string[];
+  valueOptions?: { value: string; label: string }[];
 }
 
 function RecordForm({
@@ -624,6 +1025,19 @@ function RecordForm({
             <div className="mt-2">
               <Switch checked={Boolean(values[f.name])} onCheckedChange={(v) => set(f.name, v)} />
             </div>
+          ) : f.valueOptions ? (
+            <select
+              id={f.name}
+              className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+              value={String(values[f.name] ?? "")}
+              onChange={(e) => set(f.name, e.target.value)}
+            >
+              {f.valueOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           ) : f.options ? (
             <select
               id={f.name}
