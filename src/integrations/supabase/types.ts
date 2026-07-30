@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      chain_test_prices: {
+        Row: {
+          created_at: string
+          discount_type: string
+          discount_value: number
+          id: string
+          is_available: boolean
+          lab_chain_id: string
+          medical_test_id: string
+          notes: string | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_available?: boolean
+          lab_chain_id: string
+          medical_test_id: string
+          notes?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_available?: boolean
+          lab_chain_id?: string
+          medical_test_id?: string
+          notes?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chain_test_prices_lab_chain_id_fkey"
+            columns: ["lab_chain_id"]
+            isOneToOne: false
+            referencedRelation: "lab_chains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chain_test_prices_medical_test_id_fkey"
+            columns: ["medical_test_id"]
+            isOneToOne: false
+            referencedRelation: "medical_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnostic_centers: {
         Row: {
           address: string
@@ -22,12 +76,15 @@ export type Database = {
           contact_phone: string
           created_at: string
           home_sample_available: boolean
+          home_sample_override: boolean | null
           id: string
           is_active: boolean
+          lab_chain_id: string | null
           latitude: number
           longitude: number
           name: string
           sample_collection_fee: number
+          sample_collection_fee_override: number | null
           slug: string
           sort_order: number
           thana: string
@@ -40,12 +97,15 @@ export type Database = {
           contact_phone?: string
           created_at?: string
           home_sample_available?: boolean
+          home_sample_override?: boolean | null
           id?: string
           is_active?: boolean
+          lab_chain_id?: string | null
           latitude?: number
           longitude?: number
           name: string
           sample_collection_fee?: number
+          sample_collection_fee_override?: number | null
           slug: string
           sort_order?: number
           thana?: string
@@ -58,15 +118,65 @@ export type Database = {
           contact_phone?: string
           created_at?: string
           home_sample_available?: boolean
+          home_sample_override?: boolean | null
           id?: string
           is_active?: boolean
+          lab_chain_id?: string | null
           latitude?: number
           longitude?: number
           name?: string
           sample_collection_fee?: number
+          sample_collection_fee_override?: number | null
           slug?: string
           sort_order?: number
           thana?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_centers_lab_chain_id_fkey"
+            columns: ["lab_chain_id"]
+            isOneToOne: false
+            referencedRelation: "lab_chains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_chains: {
+        Row: {
+          created_at: string
+          default_home_sample_available: boolean
+          default_sample_collection_fee: number
+          id: string
+          is_active: boolean
+          logo_url: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_home_sample_available?: boolean
+          default_sample_collection_fee?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_home_sample_available?: boolean
+          default_sample_collection_fee?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string
+          name?: string
+          slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -77,12 +187,14 @@ export type Database = {
           canonical_name: string
           category: string
           code: string
+          consumable_fee: number
           created_at: string
           description: string
           fasting_hours: number | null
           fasting_required: boolean
           id: string
           is_active: boolean
+          is_government_rate: boolean
           is_popular: boolean
           preparation_note: string
           report_delivery_hrs: number
@@ -95,12 +207,14 @@ export type Database = {
           canonical_name: string
           category?: string
           code: string
+          consumable_fee?: number
           created_at?: string
           description?: string
           fasting_hours?: number | null
           fasting_required?: boolean
           id?: string
           is_active?: boolean
+          is_government_rate?: boolean
           is_popular?: boolean
           preparation_note?: string
           report_delivery_hrs?: number
@@ -113,12 +227,14 @@ export type Database = {
           canonical_name?: string
           category?: string
           code?: string
+          consumable_fee?: number
           created_at?: string
           description?: string
           fasting_hours?: number | null
           fasting_required?: boolean
           id?: string
           is_active?: boolean
+          is_government_rate?: boolean
           is_popular?: boolean
           preparation_note?: string
           report_delivery_hrs?: number
@@ -174,6 +290,8 @@ export type Database = {
         Row: {
           created_at: string
           diagnostic_center_id: string
+          discount_type: string
+          discount_value: number
           discounted_price: number | null
           id: string
           is_available: boolean
@@ -185,6 +303,8 @@ export type Database = {
         Insert: {
           created_at?: string
           diagnostic_center_id: string
+          discount_type?: string
+          discount_value?: number
           discounted_price?: number | null
           id?: string
           is_available?: boolean
@@ -196,6 +316,8 @@ export type Database = {
         Update: {
           created_at?: string
           diagnostic_center_id?: string
+          discount_type?: string
+          discount_value?: number
           discounted_price?: number | null
           id?: string
           is_available?: boolean
