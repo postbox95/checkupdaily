@@ -330,15 +330,16 @@ export const bulkPriceAction = createServerFn({ method: "POST" })
     const table = data.scope === "chain" ? "chain_test_prices" : "test_prices";
     const keyCol = data.scope === "chain" ? "lab_chain_id" : "diagnostic_center_id";
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const base = () => (context.supabase.from(table) as any).eq(keyCol, data.targetId);
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const tbl = () => context.supabase.from(table) as any;
+    const base = () => tbl().eq(keyCol, data.targetId);
 
     if (data.action === "delete") {
-      const { error } = await context.supabase
-        .from(table)
+      const { error } = await tbl()
         .delete()
         .eq(keyCol, data.targetId)
         .in("medical_test_id", data.testIds);
+
       if (error) throw new Error(error.message);
       return { affected: data.testIds.length };
     }
