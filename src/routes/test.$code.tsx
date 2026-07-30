@@ -166,30 +166,36 @@ function TestPage() {
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                   <span>
                     Base:{" "}
-                    {r.price.discountedPrice ? (
+                    {r.price.finalPrice < r.price.price ? (
                       <>
                         <s>{bdt(r.price.price)}</s>{" "}
                         <span className="font-semibold text-success">
-                          {bdt(r.price.discountedPrice)}
+                          {bdt(r.price.finalPrice)}
                         </span>
                       </>
                     ) : (
                       <span className="font-semibold">{bdt(r.price.price)}</span>
                     )}
                   </span>
+                  {test.isGovernmentRate && <span>Government rate — no discount</span>}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button className="inline-flex items-center gap-1 underline decoration-dotted">
-                        <Info className="size-3" aria-hidden />+{bdt(r.center.sampleCollectionFee)}{" "}
-                        charges
+                        <Info className="size-3" aria-hidden />+
+                        {bdt(r.fee + test.consumableFee)} charges
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {t("regCharge", lang)} charge applied once per visit at this branch.
+                      {t("regCharge", lang)} {bdt(r.fee)} per visit
+                      {test.consumableFee > 0
+                        ? ` + ${bdt(test.consumableFee)} needle/tube charge for this test`
+                        : " (this test needs no needle/tube charge)"}
+                      .
                     </TooltipContent>
                   </Tooltip>
-                  {r.center.homeSampleAvailable && <span>🏠 Home collection</span>}
+                  {r.homeCollection && <span>🏠 Home collection</span>}
                   {r.price.notes && <span className="text-warning-foreground">⚠ {r.price.notes}</span>}
+
                 </div>
               </div>
               <div className="text-right">
