@@ -44,7 +44,8 @@ export const Route = createFileRoute("/test/$code")({
 
 function TestPage() {
   const { test } = Route.useLoaderData();
-  const { tests, centerById, pricesForTest, thanaCoords } = useCatalog();
+  const { tests, centerById, pricesForTest, thanaCoords, branchFee, branchHomeCollection } =
+    useCatalog();
   const { lang, thana, cart, addToCart } = useAppStore();
   const [sort, setSort] = useState<"price" | "distance">("price");
   const [homeOnly, setHomeOnly] = useState(false);
@@ -56,17 +57,33 @@ function TestPage() {
     return pricesForTest(test.id)
       .map((p) => {
         const center = centerById(p.diagnosticCenterId)!;
+        const fee = branchFee(center);
         return {
           price: p,
           center,
-          total: effectivePrice(p) + center.sampleCollectionFee,
+          fee,
+          homeCollection: branchHomeCollection(center),
+          total: p.finalPrice + test.consumableFee + fee,
           distance: distanceKm(origin, { lat: center.latitude, lng: center.longitude }),
         };
       })
-      .filter((r) => (homeOnly ? r.center.homeSampleAvailable : true))
+      .filter((r) => (homeOnly ? r.homeCollection : true))
       .filter((r) => (areaOnly ? r.center.thana === thana : true))
       .sort((a, b) => (sort === "price" ? a.total - b.total : a.distance - b.distance));
-  }, [test.id, origin, homeOnly, areaOnly, sort, thana, centerById, pricesForTest]);
+  }, [
+    test.id,
+    test.consumableFee,
+    origin,
+    homeOnly,
+    areaOnly,
+    sort,
+    thana,
+    centerById,
+    pricesForTest,
+    branchFee,
+    branchHomeCollection,
+  ]);
+
 
   const add = () => {
     if (cart.includes(test.id)) return toast.info("Already in your prescription cart.");
