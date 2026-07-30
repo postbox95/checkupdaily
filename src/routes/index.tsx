@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import { TestSearch } from "@/components/TestSearch";
-import { effectivePrice } from "@/data/seed";
 import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
