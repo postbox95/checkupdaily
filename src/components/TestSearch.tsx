@@ -17,7 +17,13 @@ const categoryLabel: Record<string, string> = {
   OTHER: "Other",
 };
 
-export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
+export function TestSearch({
+  autoFocus = false,
+  compact = false,
+}: {
+  autoFocus?: boolean;
+  compact?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [active, setActive] = useState(0);
