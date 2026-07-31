@@ -103,7 +103,9 @@ export function TestSearch({
           aria-autocomplete="list"
           aria-label="Search medical tests"
           placeholder={t("searchPlaceholder", lang)}
-          className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
+          className={`w-full bg-transparent outline-none placeholder:text-muted-foreground ${
+            compact ? "text-sm" : "text-base"
+          }`}
         />
       </div>
 
