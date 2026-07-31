@@ -89,6 +89,14 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
+
+      {showSearch && (
+        <div className="border-t border-border/60 bg-background/70 px-4 pb-2.5 pt-2">
+          <div className="mx-auto max-w-3xl">
+            <TestSearch compact />
+          </div>
+        </div>
+      )}
     </header>
   );
 }
