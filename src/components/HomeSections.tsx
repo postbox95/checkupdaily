@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarCheck, ScaleIcon, Search } from "lucide-react";
+import { ArrowRight, CalendarCheck, Scale, Search } from "lucide-react";
 import type { MedicalTest } from "@/data/seed";
 import { bdt } from "@/lib/store";
 
@@ -49,7 +49,7 @@ const steps = [
     body: "Type the test in English, Bangla or your doctor's shorthand — CBC, সুগার, USG, RBS.",
   },
   {
-    icon: ScaleIcon,
+    icon: Scale,
     title: "2. Compare true totals",
     body: "Every quote includes the lab's registration fee and the needle/tube charge for that test.",
   },
@@ -68,7 +68,7 @@ export function HowItWorks() {
         {steps.map((s) => (
           <li key={s.title} className="surface-card p-4">
             <span className="flex size-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-              <s.icon className="size-4.5" aria-hidden />
+              <s.icon className="size-4" aria-hidden />
             </span>
             <h3 className="mt-3 text-sm font-bold">{s.title}</h3>
             <p className="mt-1 text-xs text-muted-foreground">{s.body}</p>
