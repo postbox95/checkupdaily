@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { ArrowLeft, Clock, Info, Phone, Plus, Utensils } from "lucide-react";
+import { ArrowLeft, Clock, Info, MapPin, Phone, Plus, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { distanceKm } from "@/data/seed";
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/test/$code")({
 
 function TestPage() {
   const { test } = Route.useLoaderData();
-  const { tests, centerById, pricesForTest, thanaCoords, branchFee, branchHomeCollection } =
+  const { tests, centerById, chainOf, pricesForTest, thanaCoords, branchFee, branchHomeCollection } =
     useCatalog();
   const { lang, thana, cart, addToCart } = useAppStore();
   const [sort, setSort] = useState<"price" | "distance">("price");
@@ -132,6 +132,64 @@ function TestPage() {
         </div>
       </header>
 
+      <section className="surface-card mt-4 p-5">
+        <h2 className="text-sm font-bold">How to prepare</h2>
+        {test.description && (
+          <p className="mt-2 text-sm text-muted-foreground">{test.description}</p>
+        )}
+        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+          <li className="flex gap-2">
+            <Utensils className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              {test.fastingRequired
+                ? `Fast for ${test.fastingHours ?? 8} hours before sampling — plain water is fine, no tea, sugar or food.`
+                : "No fasting needed. You can give the sample at any time of day."}
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <Clock className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              Report is usually ready in {test.reportDeliveryHrs} hours
+              {test.reportDeliveryHrs >= 24
+                ? ` (about ${Math.round(test.reportDeliveryHrs / 24)} day${
+                    test.reportDeliveryHrs >= 48 ? "s" : ""
+                  })`
+                : ""}
+              . Collection cut-off times vary by branch — confirm when you call.
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            <span>
+              {test.preparationNote ||
+                "Carry your prescription and a photo ID. Tell the lab about any medicines you are taking."}
+            </span>
+          </li>
+        </ul>
+      </section>
+
+      <section className="surface-card mt-4 p-5">
+        <h2 className="text-sm font-bold">Why the price differs between labs</h2>
+        <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+          <li>
+            <strong className="text-foreground">Registration / collection fee.</strong> Each branch
+            charges its own per-visit fee, and home collection usually costs more than walk-in.
+          </li>
+          <li>
+            <strong className="text-foreground">Needle, tube & consumables.</strong> Blood tests add
+            a consumable charge; imaging tests like MRI or X-ray do not.
+          </li>
+          <li>
+            <strong className="text-foreground">Discounts.</strong> Chains run branch-level or
+            citywide discounts, shown here as a struck-through base price.
+          </li>
+          <li>
+            <strong className="text-foreground">Government-regulated tests.</strong> Some tests have
+            a fixed government rate and can never be discounted.
+          </li>
+        </ul>
+      </section>
+
       <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filters">
         <FilterChip active={sort === "price"} onClick={() => setSort("price")}>
           Price: low to high
@@ -155,9 +213,18 @@ function TestPage() {
                 <div className="flex items-center gap-2">
                   <h2 className="truncate text-sm font-bold">{r.center.name}</h2>
                   {i === 0 && sort === "price" && (
-                    <span className="rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold text-accent-foreground">
-                      Lowest price
-                    </span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold text-accent-foreground">
+                          Lowest price{areaOnly ? ` in ${thana}` : " in Dhaka"}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Lowest total bill (base price after discount + registration fee + needle/tube
+                        charge) among the {rows.length} branch{rows.length === 1 ? "" : "es"}{" "}
+                        {areaOnly ? `in ${thana}` : "across Dhaka"} currently matching your filters.
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -193,7 +260,16 @@ function TestPage() {
                       .
                     </TooltipContent>
                   </Tooltip>
-                  {r.homeCollection && <span>🏠 Home collection</span>}
+                  <span>{r.homeCollection ? "🏠 Home collection available" : "🏥 Walk-in only"}</span>
+                  {chainOf(r.center) && <span>Part of {chainOf(r.center)!.name}</span>}
+                  <a
+                    className="inline-flex items-center gap-1 underline decoration-dotted"
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`https://www.google.com/maps/search/?api=1&query=${r.center.latitude},${r.center.longitude}`}
+                  >
+                    <MapPin className="size-3" aria-hidden /> View on map
+                  </a>
                   {r.price.notes && <span className="text-warning-foreground">⚠ {r.price.notes}</span>}
 
                 </div>
