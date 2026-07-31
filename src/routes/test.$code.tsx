@@ -209,7 +209,9 @@ function TestPage() {
         {rows.map((r, i) => (
           <li key={r.center.id} className="surface-card p-4">
             <div className="flex flex-wrap items-start gap-3">
+              <LabLogo name={r.center.name} logoUrl={chainOf(r.center)?.logoUrl} />
               <div className="min-w-0 flex-1">
+
                 <div className="flex items-center gap-2">
                   <h2 className="truncate text-sm font-bold">{r.center.name}</h2>
                   {i === 0 && sort === "price" && (
