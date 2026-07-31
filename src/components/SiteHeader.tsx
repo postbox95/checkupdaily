@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { MapPin, Stethoscope } from "lucide-react";
 import { useState } from "react";
+import { TestSearch } from "@/components/TestSearch";
 import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
@@ -17,6 +18,8 @@ export function SiteHeader() {
   const { lang, setLang, thana, setThana } = useAppStore();
   const [open, setOpen] = useState(false);
   const { thanas, settings } = useCatalog();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const showSearch = pathname !== "/";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
@@ -86,6 +89,14 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
+
+      {showSearch && (
+        <div className="border-t border-border/60 bg-background/70 px-4 pb-2.5 pt-2">
+          <div className="mx-auto max-w-3xl">
+            <TestSearch compact />
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -209,7 +209,9 @@ function TestPage() {
         {rows.map((r, i) => (
           <li key={r.center.id} className="surface-card p-4">
             <div className="flex flex-wrap items-start gap-3">
+              <LabLogo name={r.center.name} logoUrl={chainOf(r.center)?.logoUrl} />
               <div className="min-w-0 flex-1">
+
                 <div className="flex items-center gap-2">
                   <h2 className="truncate text-sm font-bold">{r.center.name}</h2>
                   {i === 0 && sort === "price" && (
@@ -300,6 +302,34 @@ function TestPage() {
     </main>
   );
 }
+
+function LabLogo({ name, logoUrl }: { name: string; logoUrl?: string }) {
+  const initials = name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+
+  return (
+    <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted">
+      {logoUrl ? (
+        <img
+          src={logoUrl}
+          alt={`${name} logo`}
+          loading="lazy"
+          className="size-full object-contain"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      ) : (
+        <span className="text-xs font-bold text-muted-foreground">{initials}</span>
+      )}
+    </div>
+  );
+}
+
 
 function FilterChip({
   active,

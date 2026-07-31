@@ -17,7 +17,13 @@ const categoryLabel: Record<string, string> = {
   OTHER: "Other",
 };
 
-export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
+export function TestSearch({
+  autoFocus = false,
+  compact = false,
+}: {
+  autoFocus?: boolean;
+  compact?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [active, setActive] = useState(0);
@@ -75,8 +81,12 @@ export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
 
   return (
     <div ref={boxRef} className="relative w-full text-foreground">
-      <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-[var(--shadow-card)] focus-within:ring-2 focus-within:ring-ring/60">
-        <Search className="size-5 shrink-0 text-primary" aria-hidden />
+      <div
+        className={`flex items-center gap-3 rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] focus-within:ring-2 focus-within:ring-ring/60 ${
+          compact ? "px-3 py-2" : "px-4 py-3"
+        }`}
+      >
+        <Search className={`shrink-0 text-primary ${compact ? "size-4" : "size-5"}`} aria-hidden />
         <input
           value={query}
           autoFocus={autoFocus}
@@ -93,7 +103,9 @@ export function TestSearch({ autoFocus = false }: { autoFocus?: boolean }) {
           aria-autocomplete="list"
           aria-label="Search medical tests"
           placeholder={t("searchPlaceholder", lang)}
-          className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
+          className={`w-full bg-transparent outline-none placeholder:text-muted-foreground ${
+            compact ? "text-sm" : "text-base"
+          }`}
         />
       </div>
 
