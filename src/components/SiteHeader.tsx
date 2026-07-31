@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { MapPin, Stethoscope } from "lucide-react";
 import { useState } from "react";
+import { TestSearch } from "@/components/TestSearch";
 import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
