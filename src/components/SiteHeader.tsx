@@ -18,6 +18,8 @@ export function SiteHeader() {
   const { lang, setLang, thana, setThana } = useAppStore();
   const [open, setOpen] = useState(false);
   const { thanas, settings } = useCatalog();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const showSearch = pathname !== "/";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
