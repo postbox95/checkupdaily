@@ -211,7 +211,7 @@ export async function fetchChainProfile(slug: string, page: number): Promise<Cha
   ]);
 
   const centerLabel = new Map(
-    (branches ?? []).map((b) => [b.id, `${b.branchName ?? b.branch_name ?? ""}`.trim() || b.thana]),
+    (branches ?? []).map((b) => [b.id, (b.branch_name ?? "").trim() || b.thana]),
   );
   const rows = all ?? [];
   const start = (page - 1) * REVIEW_PAGE_SIZE;
