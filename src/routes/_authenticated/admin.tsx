@@ -34,6 +34,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAdminReviews, useModerateReview } from "@/lib/reviews";
+import { REVIEW_STATUSES, type ReviewStatus } from "@/lib/reviews.types";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -120,6 +122,7 @@ function AdminShell() {
           <TabsTrigger value="tests">Tests</TabsTrigger>
           <TabsTrigger value="labs">Branches</TabsTrigger>
           <TabsTrigger value="prices">Price matrix</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="areas">Areas</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
@@ -137,6 +140,9 @@ function AdminShell() {
         <TabsContent value="prices">
           <PricesPanel catalog={catalog} />
         </TabsContent>
+        <TabsContent value="reviews">
+          <ReviewsPanel />
+        </TabsContent>
         <TabsContent value="areas">
           <AreasPanel thanas={catalog.thanas} />
         </TabsContent>
@@ -152,6 +158,12 @@ function AdminShell() {
 }
 
 type Catalog = ReturnType<typeof useAdminCatalog>;
+
+const toLines = (v: unknown) =>
+  String(v ?? "")
+    .split("\n")
+    .map((x) => x.trim())
+    .filter(Boolean);
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -171,6 +183,9 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
         name: editing.name,
         slug: editing.slug,
         logo_url: editing.logoUrl,
+        description: editing.description ?? "",
+        pros: (editing.pros ?? []).join("\n"),
+        cons: (editing.cons ?? []).join("\n"),
         default_sample_collection_fee: editing.defaultSampleCollectionFee,
         default_home_sample_available: editing.defaultHomeSampleAvailable,
         is_active: editing.isActive,
@@ -180,6 +195,9 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
         name: "",
         slug: "",
         logo_url: "",
+        description: "",
+        pros: "",
+        cons: "",
         default_sample_collection_fee: 90,
         default_home_sample_available: true,
         is_active: true,
@@ -202,6 +220,9 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
             { name: "name", label: "Chain name" },
             { name: "slug", label: "Slug (unique)" },
             { name: "logo_url", label: "Logo URL" },
+            { name: "description", label: "Chain description (public profile)", textarea: true },
+            { name: "pros", label: "Pros — one per line", textarea: true },
+            { name: "cons", label: "Cons — one per line", textarea: true },
             { name: "default_sample_collection_fee", label: "Default registration/collection fee", type: "number" },
             { name: "default_home_sample_available", label: "Home collection by default", type: "boolean" },
             { name: "is_active", label: "Published", type: "boolean" },
@@ -214,6 +235,8 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
               id: editing?.id,
               values: {
                 ...values,
+                pros: toLines(values.pros),
+                cons: toLines(values.cons),
                 slug: String(values.slug || "").trim() || slugify(String(values.name || "")),
               },
             })
@@ -955,8 +978,18 @@ function SettingsPanel({ settings }: { settings: Record<string, unknown> }) {
       {field("defaultThana", "Default area")}
       {field("currencySymbol", "Currency symbol")}
       {field("supportPhone", "Support phone")}
+      {field("maxSearchRadiusKm", "Max search radius (km)")}
       {field("metaDescription", "SEO meta description", true)}
-      <Button onClick={() => save.mutate(form)}>Save settings</Button>
+      <Button
+        onClick={() =>
+          save.mutate({
+            ...form,
+            maxSearchRadiusKm: Number(form.maxSearchRadiusKm) || 5,
+          })
+        }
+      >
+        Save settings
+      </Button>
     </div>
   );
 }
@@ -987,6 +1020,143 @@ function UsersPanel() {
           ))}
         </div>
       ))}
+    </div>
+  );
+}
+
+/* -------------------------------- reviews --------------------------------- */
+
+function ReviewsPanel() {
+  const { data: reviews, isLoading } = useAdminReviews();
+  const moderate = useModerateReview();
+  const [chain, setChain] = useState("all");
+  const [branch, setBranch] = useState("all");
+  const [rating, setRating] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  const rows = (reviews ?? []).filter(
+    (r) =>
+      (chain === "all" || r.chainId === chain) &&
+      (branch === "all" || r.branchLabel === branch) &&
+      (rating === "all" || String(r.rating) === rating) &&
+      (status === "all" || r.status === status),
+  );
+
+  const chains = [...new Map((reviews ?? []).map((r) => [r.chainId, r.chainName])).entries()];
+  const branches = [...new Set((reviews ?? []).map((r) => r.branchLabel).filter(Boolean))] as string[];
+
+  const select = (
+    value: string,
+    onChange: (v: string) => void,
+    options: { value: string; label: string }[],
+    label: string,
+  ) => (
+    <label className="text-xs font-semibold text-muted-foreground">
+      {label}
+      <select
+        className="mt-1 block h-9 rounded-md border border-input bg-background px-2 text-sm font-normal text-foreground"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="all">All</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+
+  const act = (id: string, next: ReviewStatus) => {
+    if (next === "flagged") {
+      const reason = window.prompt("Why is this review fake or suspicious?")?.trim();
+      if (!reason) return;
+      moderate.mutate({ id, status: "flagged", flaggedReason: reason });
+      return;
+    }
+    moderate.mutate({ id, status: next });
+  };
+
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Reviews auto-publish after phone verification. Flagging or deleting a review removes it from
+        the chain profile and its rating summary immediately.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        {select(chain, setChain, chains.map(([id, name]) => ({ value: id, label: name })), "Chain")}
+        {select(branch, setBranch, branches.map((b) => ({ value: b, label: b })), "Branch")}
+        {select(rating, setRating, [5, 4, 3, 2, 1].map((r) => ({ value: String(r), label: `${r} star` })), "Rating")}
+        {select(status, setStatus, REVIEW_STATUSES.map((s) => ({ value: s, label: s })), "Status")}
+      </div>
+
+      {isLoading && <p className="text-sm text-muted-foreground">Loading reviews…</p>}
+
+      <div className="surface-card divide-y divide-border">
+        {rows.map((r) => (
+          <div key={r.id} className="space-y-2 p-3">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="text-sm font-semibold text-foreground">{r.rating}★</span>
+              <span className="text-foreground">{r.chainName}</span>
+              {r.branchLabel && <span>· {r.branchLabel}</span>}
+              <span>· {r.maskedPhone}</span>
+              <span>· bill {r.billingId}</span>
+              <span>· {new Date(r.createdAt).toLocaleDateString()}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 font-bold ${
+                  r.status === "published"
+                    ? "bg-success/20 text-accent-foreground"
+                    : r.status === "flagged"
+                      ? "bg-warning/20 text-warning-foreground"
+                      : r.status === "deleted"
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-muted"
+                }`}
+              >
+                {r.status}
+              </span>
+            </div>
+            <p className="text-sm">
+              {expanded[r.id] || r.reviewText.length <= 160
+                ? r.reviewText
+                : `${r.reviewText.slice(0, 160)}… `}
+              {r.reviewText.length > 160 && (
+                <button
+                  className="text-xs underline decoration-dotted"
+                  onClick={() => setExpanded((s) => ({ ...s, [r.id]: !s[r.id] }))}
+                >
+                  {expanded[r.id] ? "less" : "expand"}
+                </button>
+              )}
+            </p>
+            {r.flaggedReason && (
+              <p className="text-xs text-warning-foreground">Flag reason: {r.flaggedReason}</p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {r.status !== "flagged" && (
+                <Button size="sm" variant="outline" onClick={() => act(r.id, "flagged")}>
+                  Flag as fake
+                </Button>
+              )}
+              {r.status !== "deleted" && (
+                <Button size="sm" variant="ghost" onClick={() => act(r.id, "deleted")}>
+                  Delete
+                </Button>
+              )}
+              {r.status !== "published" && (
+                <Button size="sm" onClick={() => act(r.id, "published")}>
+                  Restore
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+        {!rows.length && !isLoading && (
+          <p className="p-4 text-sm text-muted-foreground">No reviews match these filters.</p>
+        )}
+      </div>
     </div>
   );
 }
