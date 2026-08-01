@@ -54,7 +54,7 @@ export function useRequestOtp() {
 export function useSubmitReview(onDone?: () => void) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Parameters<typeof submitReview>[0] extends never ? never : {
+    mutationFn: (input: {
       chainId: string;
       branchId?: string | null;
       phone: string;
