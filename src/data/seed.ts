@@ -23,6 +23,9 @@ export interface LabChain {
   slug: string;
   name: string;
   logoUrl: string;
+  description: string;
+  pros: string[];
+  cons: string[];
   defaultHomeSampleAvailable: boolean;
   defaultSampleCollectionFee: number;
   isActive: boolean;
@@ -115,6 +118,8 @@ export interface SiteSettings {
   currencySymbol: string;
   supportPhone: string;
   metaDescription: string;
+  /** search results are capped to this radius from the visitor's area */
+  maxSearchRadiusKm: number;
 }
 
 export interface Catalog {
@@ -148,6 +153,7 @@ export const emptyCatalog: Catalog = {
     supportPhone: "",
     metaDescription:
       "Compare diagnostic test prices across Dhaka diagnostic centres, including needle & registration charges.",
+    maxSearchRadiusKm: 5,
   },
 };
 
