@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
+import { Route as ChainSlugRouteImport } from './routes/chain.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -46,6 +47,11 @@ const TestCodeRoute = TestCodeRouteImport.update({
   path: '/test/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChainSlugRoute = ChainSlugRouteImport.update({
+  id: '/chain/$slug',
+  path: '/chain/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRoutesById {
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
 }
 export interface FileRouteTypes {
@@ -86,9 +95,17 @@ export interface FileRouteTypes {
     | '/compare'
     | '/sitemap.xml'
     | '/admin'
+    | '/chain/$slug'
     | '/test/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/compare' | '/sitemap.xml' | '/admin' | '/test/$code'
+  to:
+    | '/'
+    | '/auth'
+    | '/compare'
+    | '/sitemap.xml'
+    | '/admin'
+    | '/chain/$slug'
+    | '/test/$code'
   id:
     | '__root__'
     | '/'
@@ -97,6 +114,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/chain/$slug'
     | '/test/$code'
   fileRoutesById: FileRoutesById
 }
@@ -106,6 +124,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ChainSlugRoute: typeof ChainSlugRoute
   TestCodeRoute: typeof TestCodeRoute
 }
 
@@ -153,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chain/$slug': {
+      id: '/chain/$slug'
+      path: '/chain/$slug'
+      fullPath: '/chain/$slug'
+      preLoaderRoute: typeof ChainSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -180,6 +206,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ChainSlugRoute: ChainSlugRoute,
   TestCodeRoute: TestCodeRoute,
 }
 export const routeTree = rootRouteImport

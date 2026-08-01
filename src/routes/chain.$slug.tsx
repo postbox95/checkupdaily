@@ -168,9 +168,7 @@ function ChainPage() {
                 </a>
               )}
               <Button size="sm" variant="outline" asChild>
-                <Link to="/" search={{ branch: b.id } as never}>
-                  See test prices
-                </Link>
+                <Link to="/">Browse test prices</Link>
               </Button>
             </li>
           ))}
