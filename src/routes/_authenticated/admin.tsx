@@ -897,6 +897,13 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
   const [name, setName] = useState("");
   const [lat, setLat] = useState(23.75);
   const [lng, setLng] = useState(90.39);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [draft, setDraft] = useState({ name: "", latitude: 0, longitude: 0 });
+
+  const startEdit = (t: Thana) => {
+    setEditId(t.id);
+    setDraft({ name: t.name, latitude: t.latitude, longitude: t.longitude });
+  };
 
   return (
     <div className="mt-4 space-y-4">
@@ -925,21 +932,75 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
         </Button>
       </div>
       <div className="surface-card divide-y divide-border">
-        {thanas.map((t) => (
-          <div key={t.id} className="flex items-center gap-3 p-3">
-            <span className="flex-1 text-sm font-medium">{t.name}</span>
-            <span className="text-xs text-muted-foreground">
-              {t.latitude.toFixed(4)}, {t.longitude.toFixed(4)}
-            </span>
-            <Button size="sm" variant="ghost" onClick={() => del.mutate({ table: "thanas", id: t.id })}>
-              Delete
-            </Button>
-          </div>
-        ))}
+        {thanas.map((t) =>
+          editId === t.id ? (
+            <div key={t.id} className="flex flex-wrap items-end gap-3 p-3">
+              <div>
+                <Label className="text-xs">Area name</Label>
+                <Input
+                  className="mt-1"
+                  value={draft.name}
+                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Latitude</Label>
+                <Input
+                  className="mt-1 w-32"
+                  type="number"
+                  value={draft.latitude}
+                  onChange={(e) => setDraft({ ...draft, latitude: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Longitude</Label>
+                <Input
+                  className="mt-1 w-32"
+                  type="number"
+                  value={draft.longitude}
+                  onChange={(e) => setDraft({ ...draft, longitude: Number(e.target.value) })}
+                />
+              </div>
+              <Button
+                size="sm"
+                disabled={!draft.name || save.isPending}
+                onClick={() =>
+                  save.mutate(
+                    {
+                      table: "thanas",
+                      id: t.id,
+                      values: { name: draft.name, latitude: draft.latitude, longitude: draft.longitude },
+                    },
+                    { onSuccess: () => setEditId(null) },
+                  )
+                }
+              >
+                Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditId(null)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <div key={t.id} className="flex items-center gap-3 p-3">
+              <span className="flex-1 text-sm font-medium">{t.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {t.latitude.toFixed(4)}, {t.longitude.toFixed(4)}
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => startEdit(t)}>
+                Edit
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => del.mutate({ table: "thanas", id: t.id })}>
+                Delete
+              </Button>
+            </div>
+          ),
+        )}
       </div>
     </div>
   );
 }
+
 
 /* -------------------------------- settings -------------------------------- */
 
