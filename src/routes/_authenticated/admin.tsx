@@ -432,6 +432,21 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
 
 /* ---------------------------------- labs ---------------------------------- */
 
+function normalizeTime(raw: string, fallback: string) {
+  const m = raw.trim().match(/^(\d{1,2}):?(\d{2})?$/);
+  if (!m) return fallback;
+  const h = Math.min(23, Number(m[1]));
+  const min = Math.min(59, Number(m[2] ?? 0));
+  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
+function parseClosedDays(raw: string) {
+  return raw
+    .split(/[,\s]+/)
+    .map((s) => DAY_NAMES.findIndex((d) => d.toLowerCase() === s.trim().slice(0, 3).toLowerCase()))
+    .filter((i) => i >= 0);
+}
+
 function LabsPanel({ catalog }: { catalog: Catalog }) {
   const { centers, thanas, chains } = catalog;
   const [editing, setEditing] = useState<DiagnosticCenter | null>(null);
