@@ -455,6 +455,10 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
         sample_collection_fee_override: editing.sampleCollectionFeeOverride ?? 0,
         home_mode: editing.homeSampleOverride === null ? "inherit" : "override",
         home_sample_override: editing.homeSampleOverride ?? true,
+        is_24_hours: editing.is24Hours,
+        opens_at: editing.opensAt,
+        closes_at: editing.closesAt,
+        closed_days: (editing.closedDays ?? []).map((d) => DAY_NAMES[d]).join(", "),
         is_active: editing.isActive,
         sort_order: editing.sortOrder,
       }
@@ -472,9 +476,14 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
         sample_collection_fee_override: 100,
         home_mode: "inherit",
         home_sample_override: true,
+        is_24_hours: false,
+        opens_at: "08:00",
+        closes_at: "22:00",
+        closed_days: "",
         is_active: true,
         sort_order: 0,
       };
+
 
   return (
     <div className="mt-4 space-y-4">
