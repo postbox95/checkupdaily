@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { distanceKm } from "@/data/seed";
 import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
 import { redundancyWarning } from "@/lib/search";
+import { branchOpenStatus } from "@/lib/hours";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
