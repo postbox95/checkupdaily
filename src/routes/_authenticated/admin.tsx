@@ -610,6 +610,18 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
                   </Badge>{" "}
                   · {c.contactPhone}
                 </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {branchOpenStatus(c).hoursText}
+                  {c.closedDays.length
+                    ? ` · closed ${c.closedDays.map((d) => DAY_NAMES[d]).join(", ")}`
+                    : ""}{" "}
+                  <Badge
+                    variant={branchOpenStatus(c).open ? "default" : "secondary"}
+                    className="ml-1 align-middle text-[10px]"
+                  >
+                    {branchOpenStatus(c).open ? "open now" : "closed now"}
+                  </Badge>
+                </p>
               </div>
               <Button size="sm" variant="outline" onClick={() => { setEditing(c); setCreating(false); }}>Edit</Button>
               <Button
