@@ -158,7 +158,11 @@ export type Database = {
         Row: {
           cons: string[]
           created_at: string
+          default_closed_days: number[]
+          default_closes_at: string
           default_home_sample_available: boolean
+          default_is_24_hours: boolean
+          default_opens_at: string
           default_sample_collection_fee: number
           description: string
           id: string
@@ -173,7 +177,11 @@ export type Database = {
         Insert: {
           cons?: string[]
           created_at?: string
+          default_closed_days?: number[]
+          default_closes_at?: string
           default_home_sample_available?: boolean
+          default_is_24_hours?: boolean
+          default_opens_at?: string
           default_sample_collection_fee?: number
           description?: string
           id?: string
@@ -188,7 +196,11 @@ export type Database = {
         Update: {
           cons?: string[]
           created_at?: string
+          default_closed_days?: number[]
+          default_closes_at?: string
           default_home_sample_available?: boolean
+          default_is_24_hours?: boolean
+          default_opens_at?: string
           default_sample_collection_fee?: number
           description?: string
           id?: string
