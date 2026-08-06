@@ -189,6 +189,10 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
         cons: (editing.cons ?? []).join("\n"),
         default_sample_collection_fee: editing.defaultSampleCollectionFee,
         default_home_sample_available: editing.defaultHomeSampleAvailable,
+        default_is_24_hours: editing.defaultIs24Hours,
+        default_opens_at: editing.defaultOpensAt,
+        default_closes_at: editing.defaultClosesAt,
+        default_closed_days: (editing.defaultClosedDays ?? []).map((d) => DAY_NAMES[d]).join(", "),
         is_active: editing.isActive,
         sort_order: editing.sortOrder,
       }
@@ -201,6 +205,10 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
         cons: "",
         default_sample_collection_fee: 90,
         default_home_sample_available: true,
+        default_is_24_hours: false,
+        default_opens_at: "08:00",
+        default_closes_at: "22:00",
+        default_closed_days: "",
         is_active: true,
         sort_order: 0,
       };
@@ -226,6 +234,10 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
             { name: "cons", label: "Cons — one per line", textarea: true },
             { name: "default_sample_collection_fee", label: "Default registration/collection fee", type: "number" },
             { name: "default_home_sample_available", label: "Home collection by default", type: "boolean" },
+            { name: "default_is_24_hours", label: "Branches open 24 hours by default", type: "boolean" },
+            { name: "default_opens_at", label: "Default opening time (24h, e.g. 08:00)" },
+            { name: "default_closes_at", label: "Default closing time (24h, e.g. 22:00)" },
+            { name: "default_closed_days", label: "Default weekly closed days (e.g. Fri, Sat)" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
           ]}
@@ -238,6 +250,10 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
                 ...values,
                 pros: toLines(values.pros),
                 cons: toLines(values.cons),
+                default_is_24_hours: Boolean(values.default_is_24_hours),
+                default_opens_at: normalizeTime(String(values.default_opens_at ?? ""), "08:00"),
+                default_closes_at: normalizeTime(String(values.default_closes_at ?? ""), "22:00"),
+                default_closed_days: parseClosedDays(String(values.default_closed_days ?? "")),
                 slug: String(values.slug || "").trim() || slugify(String(values.name || "")),
               },
             })
@@ -264,7 +280,13 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
                   <p className="truncate text-xs text-muted-foreground">
                     {branches.length} branches · default fee ৳{ch.defaultSampleCollectionFee} ·{" "}
                     {overrides} branch fee override{overrides === 1 ? "" : "s"} ·{" "}
-                    {ch.defaultHomeSampleAvailable ? "home collection on" : "no home collection"}
+                    {ch.defaultHomeSampleAvailable ? "home collection on" : "no home collection"} ·{" "}
+                    {ch.defaultIs24Hours
+                      ? "default hours 24/7"
+                      : `default hours ${ch.defaultOpensAt}–${ch.defaultClosesAt}`}
+                    {ch.defaultClosedDays?.length
+                      ? ` (closed ${ch.defaultClosedDays.map((d) => DAY_NAMES[d]).join(", ")})`
+                      : ""}
                   </p>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => { setEditing(ch); setCreating(false); }}>
@@ -296,6 +318,9 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "prices", overwriteOverrides: overwrite })}>
                     Push price template
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "hours", overwriteOverrides: overwrite })}>
+                    Push hours to all branches
                   </Button>
                 </div>
               </div>
