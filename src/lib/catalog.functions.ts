@@ -43,6 +43,11 @@ const mapChain = (r: any): LabChain => ({
   cons: r.cons ?? [],
   defaultHomeSampleAvailable: r.default_home_sample_available,
   defaultSampleCollectionFee: r.default_sample_collection_fee,
+  defaultOpensAt: (r.default_opens_at ?? "08:00").slice(0, 5),
+  defaultClosesAt: (r.default_closes_at ?? "22:00").slice(0, 5),
+  defaultIs24Hours: r.default_is_24_hours ?? false,
+  defaultClosedDays: (r.default_closed_days ?? []).map(Number),
+
   isActive: r.is_active,
   sortOrder: r.sort_order,
 });
