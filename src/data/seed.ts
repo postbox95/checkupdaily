@@ -28,6 +28,11 @@ export interface LabChain {
   cons: string[];
   defaultHomeSampleAvailable: boolean;
   defaultSampleCollectionFee: number;
+  defaultOpensAt: string;
+  defaultClosesAt: string;
+  defaultIs24Hours: boolean;
+  defaultClosedDays: number[];
+
   isActive: boolean;
   sortOrder: number;
 }
