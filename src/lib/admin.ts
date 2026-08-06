@@ -125,7 +125,7 @@ export function usePushChain() {
   return useMutation({
     mutationFn: (input: {
       chainId: string;
-      what: "fee" | "prices" | "both";
+      what: "fee" | "prices" | "both" | "hours";
       overwriteOverrides: boolean;
     }) => pushChainToBranches({ data: input }),
     onSuccess: (r) => {

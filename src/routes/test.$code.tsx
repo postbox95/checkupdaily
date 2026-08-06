@@ -1,8 +1,8 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Info, MapPin, Phone, Plus, Utensils } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { distanceKm } from "@/data/seed";
+import { distanceKm, type DiagnosticCenter } from "@/data/seed";
 import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
 import { redundancyWarning } from "@/lib/search";
 import { branchOpenStatus } from "@/lib/hours";
@@ -256,16 +256,8 @@ function TestPage() {
                   {r.center.branchName} · {r.center.thana} · {r.distance.toFixed(1)} km from {thana}
                 </p>
                 <p className="mt-1 text-xs">
-                  <span
-                    className={
-                      branchOpenStatus(r.center).open
-                        ? "font-semibold text-success"
-                        : "font-semibold text-destructive"
-                    }
-                  >
-                    {branchOpenStatus(r.center).open ? "🟢 Open now" : `🔴 ${branchOpenStatus(r.center).label}`}
-                  </span>{" "}
-                  <span className="text-muted-foreground">· {branchOpenStatus(r.center).hoursText}</span>
+                  <OpenStatus center={r.center} />
+
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                   <span>
@@ -409,5 +401,22 @@ function FilterChip({
     >
       {children}
     </button>
+  );
+}
+
+function OpenStatus({ center }: { center: DiagnosticCenter }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const status = branchOpenStatus(center);
+  if (!mounted) {
+    return <span className="text-muted-foreground">{status.hoursText}</span>;
+  }
+  return (
+    <>
+      <span className={status.open ? "font-semibold text-success" : "font-semibold text-destructive"}>
+        {status.open ? "🟢 Open now" : `🔴 ${status.label}`}
+      </span>{" "}
+      <span className="text-muted-foreground">· {status.hoursText}</span>
+    </>
   );
 }

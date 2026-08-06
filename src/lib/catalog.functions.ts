@@ -43,6 +43,11 @@ const mapChain = (r: any): LabChain => ({
   cons: r.cons ?? [],
   defaultHomeSampleAvailable: r.default_home_sample_available,
   defaultSampleCollectionFee: r.default_sample_collection_fee,
+  defaultOpensAt: (r.default_opens_at ?? "08:00").slice(0, 5),
+  defaultClosesAt: (r.default_closes_at ?? "22:00").slice(0, 5),
+  defaultIs24Hours: r.default_is_24_hours ?? false,
+  defaultClosedDays: (r.default_closed_days ?? []).map(Number),
+
   isActive: r.is_active,
   sortOrder: r.sort_order,
 });
@@ -417,7 +422,7 @@ export const pushChainToBranches = createServerFn({ method: "POST" })
   .inputValidator(
     (d: {
       chainId: string;
-      what: "fee" | "prices" | "both";
+      what: "fee" | "prices" | "both" | "hours";
       overwriteOverrides: boolean;
       testIds?: string[];
     }) => d,
@@ -434,6 +439,27 @@ export const pushChainToBranches = createServerFn({ method: "POST" })
     if (!branchIds.length) return { branches: 0, prices: 0 };
 
     let pricesTouched = 0;
+
+    if (data.what === "hours") {
+      const { data: chain, error: cErr } = await context.supabase
+        .from("lab_chains")
+        .select("default_opens_at, default_closes_at, default_is_24_hours, default_closed_days")
+        .eq("id", data.chainId)
+        .maybeSingle();
+      if (cErr) throw new Error(cErr.message);
+      if (!chain) throw new Error("Chain not found");
+      const { error } = await context.supabase
+        .from("diagnostic_centers")
+        .update({
+          opens_at: chain.default_opens_at,
+          closes_at: chain.default_closes_at,
+          is_24_hours: chain.default_is_24_hours,
+          closed_days: chain.default_closed_days,
+        })
+        .eq("lab_chain_id", data.chainId);
+      if (error) throw new Error(error.message);
+      return { branches: branchIds.length, prices: 0 };
+    }
 
     if (data.what === "fee" || data.what === "both") {
       // Clearing the override puts a branch back on the chain default.
