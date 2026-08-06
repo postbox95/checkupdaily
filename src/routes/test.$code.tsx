@@ -256,16 +256,8 @@ function TestPage() {
                   {r.center.branchName} · {r.center.thana} · {r.distance.toFixed(1)} km from {thana}
                 </p>
                 <p className="mt-1 text-xs">
-                  <span
-                    className={
-                      branchOpenStatus(r.center).open
-                        ? "font-semibold text-success"
-                        : "font-semibold text-destructive"
-                    }
-                  >
-                    {branchOpenStatus(r.center).open ? "🟢 Open now" : `🔴 ${branchOpenStatus(r.center).label}`}
-                  </span>{" "}
-                  <span className="text-muted-foreground">· {branchOpenStatus(r.center).hoursText}</span>
+                  <OpenStatus center={r.center} />
+
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                   <span>
