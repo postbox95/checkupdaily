@@ -26,6 +26,7 @@ import {
   type MedicalTest,
   type Thana,
 } from "@/data/seed";
+import { DAY_NAMES, branchOpenStatus } from "@/lib/hours";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -431,6 +432,21 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
 
 /* ---------------------------------- labs ---------------------------------- */
 
+function normalizeTime(raw: string, fallback: string) {
+  const m = raw.trim().match(/^(\d{1,2}):?(\d{2})?$/);
+  if (!m) return fallback;
+  const h = Math.min(23, Number(m[1]));
+  const min = Math.min(59, Number(m[2] ?? 0));
+  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
+function parseClosedDays(raw: string) {
+  return raw
+    .split(/[,\s]+/)
+    .map((s) => DAY_NAMES.findIndex((d) => d.toLowerCase() === s.trim().slice(0, 3).toLowerCase()))
+    .filter((i) => i >= 0);
+}
+
 function LabsPanel({ catalog }: { catalog: Catalog }) {
   const { centers, thanas, chains } = catalog;
   const [editing, setEditing] = useState<DiagnosticCenter | null>(null);
@@ -455,6 +471,10 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
         sample_collection_fee_override: editing.sampleCollectionFeeOverride ?? 0,
         home_mode: editing.homeSampleOverride === null ? "inherit" : "override",
         home_sample_override: editing.homeSampleOverride ?? true,
+        is_24_hours: editing.is24Hours,
+        opens_at: editing.opensAt,
+        closes_at: editing.closesAt,
+        closed_days: (editing.closedDays ?? []).map((d) => DAY_NAMES[d]).join(", "),
         is_active: editing.isActive,
         sort_order: editing.sortOrder,
       }
@@ -472,9 +492,14 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
         sample_collection_fee_override: 100,
         home_mode: "inherit",
         home_sample_override: true,
+        is_24_hours: false,
+        opens_at: "08:00",
+        closes_at: "22:00",
+        closed_days: "",
         is_active: true,
         sort_order: 0,
       };
+
 
   return (
     <div className="mt-4 space-y-4">
@@ -521,6 +546,10 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
               ],
             },
             { name: "home_sample_override", label: "Home collection at this branch", type: "boolean" },
+            { name: "is_24_hours", label: "Open 24 hours", type: "boolean" },
+            { name: "opens_at", label: "Opening time (24h, e.g. 08:00)" },
+            { name: "closes_at", label: "Closing time (24h, e.g. 22:00)" },
+            { name: "closed_days", label: "Weekly closed days (e.g. Fri, Sat — blank for none)" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
           ]}
@@ -551,6 +580,10 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
                 sample_collection_fee: feeOverride ?? chain?.defaultSampleCollectionFee ?? 0,
                 home_sample_override: homeOverride,
                 home_sample_available: homeOverride ?? chain?.defaultHomeSampleAvailable ?? true,
+                is_24_hours: Boolean(values.is_24_hours),
+                opens_at: normalizeTime(String(values.opens_at ?? ""), "08:00"),
+                closes_at: normalizeTime(String(values.closes_at ?? ""), "22:00"),
+                closed_days: parseClosedDays(String(values.closed_days ?? "")),
                 is_active: values.is_active,
                 sort_order: Number(values.sort_order),
               },
@@ -576,6 +609,18 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
                     {inheritedFee ? "inherited" : "custom"}
                   </Badge>{" "}
                   · {c.contactPhone}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {branchOpenStatus(c).hoursText}
+                  {c.closedDays.length
+                    ? ` · closed ${c.closedDays.map((d) => DAY_NAMES[d]).join(", ")}`
+                    : ""}{" "}
+                  <Badge
+                    variant={branchOpenStatus(c).open ? "default" : "secondary"}
+                    className="ml-1 align-middle text-[10px]"
+                  >
+                    {branchOpenStatus(c).open ? "open now" : "closed now"}
+                  </Badge>
                 </p>
               </div>
               <Button size="sm" variant="outline" onClick={() => { setEditing(c); setCreating(false); }}>Edit</Button>

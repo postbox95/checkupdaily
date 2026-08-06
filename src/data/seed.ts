@@ -49,6 +49,13 @@ export interface DiagnosticCenter {
   sampleCollectionFeeOverride: number | null;
   homeSampleAvailable: boolean;
   homeSampleOverride: boolean | null;
+  /** "HH:MM" 24h local opening time */
+  opensAt: string;
+  /** "HH:MM" 24h local closing time (may be past midnight, e.g. 02:00) */
+  closesAt: string;
+  is24Hours: boolean;
+  /** weekday numbers the branch stays shut, 0 = Sunday */
+  closedDays: number[];
   isActive: boolean;
   sortOrder: number;
 }

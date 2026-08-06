@@ -73,16 +73,20 @@ export type Database = {
           address: string
           branch_name: string
           city: string
+          closed_days: number[]
+          closes_at: string
           contact_phone: string
           created_at: string
           home_sample_available: boolean
           home_sample_override: boolean | null
           id: string
+          is_24_hours: boolean
           is_active: boolean
           lab_chain_id: string | null
           latitude: number
           longitude: number
           name: string
+          opens_at: string
           sample_collection_fee: number
           sample_collection_fee_override: number | null
           slug: string
@@ -94,16 +98,20 @@ export type Database = {
           address?: string
           branch_name?: string
           city?: string
+          closed_days?: number[]
+          closes_at?: string
           contact_phone?: string
           created_at?: string
           home_sample_available?: boolean
           home_sample_override?: boolean | null
           id?: string
+          is_24_hours?: boolean
           is_active?: boolean
           lab_chain_id?: string | null
           latitude?: number
           longitude?: number
           name: string
+          opens_at?: string
           sample_collection_fee?: number
           sample_collection_fee_override?: number | null
           slug: string
@@ -115,16 +123,20 @@ export type Database = {
           address?: string
           branch_name?: string
           city?: string
+          closed_days?: number[]
+          closes_at?: string
           contact_phone?: string
           created_at?: string
           home_sample_available?: boolean
           home_sample_override?: boolean | null
           id?: string
+          is_24_hours?: boolean
           is_active?: boolean
           lab_chain_id?: string | null
           latitude?: number
           longitude?: number
           name?: string
+          opens_at?: string
           sample_collection_fee?: number
           sample_collection_fee_override?: number | null
           slug?: string

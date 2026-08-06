@@ -63,6 +63,10 @@ const mapCenter = (r: any): DiagnosticCenter => ({
   sampleCollectionFeeOverride: r.sample_collection_fee_override ?? null,
   homeSampleAvailable: r.home_sample_available,
   homeSampleOverride: r.home_sample_override ?? null,
+  opensAt: (r.opens_at ?? "08:00").slice(0, 5),
+  closesAt: (r.closes_at ?? "22:00").slice(0, 5),
+  is24Hours: r.is_24_hours ?? false,
+  closedDays: (r.closed_days ?? []).map(Number),
   isActive: r.is_active,
   sortOrder: r.sort_order,
 });
