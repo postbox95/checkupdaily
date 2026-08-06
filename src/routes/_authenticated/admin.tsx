@@ -531,6 +531,10 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
               ],
             },
             { name: "home_sample_override", label: "Home collection at this branch", type: "boolean" },
+            { name: "is_24_hours", label: "Open 24 hours", type: "boolean" },
+            { name: "opens_at", label: "Opening time (24h, e.g. 08:00)" },
+            { name: "closes_at", label: "Closing time (24h, e.g. 22:00)" },
+            { name: "closed_days", label: "Weekly closed days (e.g. Fri, Sat — blank for none)" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
           ]}
