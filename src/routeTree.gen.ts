@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
 import { Route as ChainSlugRouteImport } from './routes/chain.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicAdImageSplatRouteImport } from './routes/api/public/ad-image.$'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -57,6 +58,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicAdImageSplatRoute = ApiPublicAdImageSplatRouteImport.update({
+  id: '/api/public/ad-image/$',
+  path: '/api/public/ad-image/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chain/$slug'
     | '/test/$code'
+    | '/api/public/ad-image/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chain/$slug'
     | '/test/$code'
+    | '/api/public/ad-image/$'
   id:
     | '__root__'
     | '/'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/chain/$slug'
     | '/test/$code'
+    | '/api/public/ad-image/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -126,6 +138,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ChainSlugRoute: typeof ChainSlugRoute
   TestCodeRoute: typeof TestCodeRoute
+  ApiPublicAdImageSplatRoute: typeof ApiPublicAdImageSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -186,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/ad-image/$': {
+      id: '/api/public/ad-image/$'
+      path: '/api/public/ad-image/$'
+      fullPath: '/api/public/ad-image/$'
+      preLoaderRoute: typeof ApiPublicAdImageSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -208,17 +228,8 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ChainSlugRoute: ChainSlugRoute,
   TestCodeRoute: TestCodeRoute,
+  ApiPublicAdImageSplatRoute: ApiPublicAdImageSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
