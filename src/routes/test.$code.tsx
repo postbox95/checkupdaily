@@ -116,6 +116,9 @@ function TestPage() {
         <ArrowLeft className="size-3.5" aria-hidden /> Back to search
       </Link>
 
+      <AdSlot placement="search_top" className="mt-3" />
+
+
       <header className="surface-card mt-3 p-5">
         <h1 className="text-2xl font-extrabold tracking-tight">{test.canonicalName}</h1>
         <p className="mt-1 text-sm text-muted-foreground" data-lang="bn">
