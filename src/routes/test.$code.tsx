@@ -8,6 +8,7 @@ import { redundancyWarning } from "@/lib/search";
 import { branchOpenStatus } from "@/lib/hours";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
+import { AdSlot } from "@/components/AdSlot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
