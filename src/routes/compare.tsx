@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { distanceKm } from "@/data/seed";
 import { useCatalog } from "@/lib/catalog";
 import { bdt, useAppStore } from "@/lib/store";
+import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -94,6 +95,7 @@ function ComparePage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 pt-8 pb-32">
+      <AdSlot placement="compare_top" className="mb-5" />
       <h1 className="text-2xl font-extrabold tracking-tight">
         Multi-lab comparison for {cart.length} tests
       </h1>
@@ -187,6 +189,8 @@ function ComparePage() {
           </li>
         ))}
       </ul>
+
+      <AdSlot placement="compare_bottom" className="mt-5" />
     </main>
   );
 }

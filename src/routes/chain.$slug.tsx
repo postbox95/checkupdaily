@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Phone, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,7 @@ function ChainPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 pb-24 pt-6">
+      <AdSlot placement="chain_top" className="mb-5" />
       <header className="surface-card flex flex-wrap items-center gap-4 p-5">
         <div className="flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted">
           {chain.logoUrl ? (
@@ -229,6 +231,8 @@ function ChainPage() {
           </div>
         )}
       </section>
+
+      <AdSlot placement="chain_bottom" className="mt-5" />
     </main>
   );
 }

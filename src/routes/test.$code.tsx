@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Info, MapPin, Phone, Plus, Utensils } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { distanceKm, type DiagnosticCenter } from "@/data/seed";
 import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
@@ -8,6 +8,7 @@ import { redundancyWarning } from "@/lib/search";
 import { branchOpenStatus } from "@/lib/hours";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
+import { AdSlot } from "@/components/AdSlot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -114,6 +115,9 @@ function TestPage() {
       >
         <ArrowLeft className="size-3.5" aria-hidden /> Back to search
       </Link>
+
+      <AdSlot placement="search_top" className="mt-3" />
+
 
       <header className="surface-card mt-3 p-5">
         <h1 className="text-2xl font-extrabold tracking-tight">{test.canonicalName}</h1>
@@ -230,7 +234,13 @@ function TestPage() {
 
       <ul className="mt-4 space-y-3">
         {rows.map((r, i) => (
-          <li key={r.center.id} className="surface-card p-4">
+          <Fragment key={r.center.id}>
+          {i === 3 && (
+            <li>
+              <AdSlot placement="search_inline" />
+            </li>
+          )}
+          <li className="surface-card p-4">
             <div className="flex flex-wrap items-start gap-3">
               <LabLogo name={r.center.name} logoUrl={chainOf(r.center)?.logoUrl} />
               <div className="min-w-0 flex-1">
@@ -327,6 +337,7 @@ function TestPage() {
               </Button>
             </div>
           </li>
+          </Fragment>
         ))}
         {rows.length === 0 && (
           <li className="surface-card p-6 text-center text-sm text-muted-foreground">
@@ -348,6 +359,8 @@ function TestPage() {
           </li>
         )}
       </ul>
+
+      <AdSlot placement="search_bottom" className="mt-5" />
     </main>
   );
 }
