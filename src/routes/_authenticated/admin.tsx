@@ -124,6 +124,7 @@ function AdminShell() {
           <TabsTrigger value="labs">Branches</TabsTrigger>
           <TabsTrigger value="prices">Price matrix</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
+          <TabsTrigger value="banners">Ad banners</TabsTrigger>
           <TabsTrigger value="areas">Areas</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
@@ -143,6 +144,9 @@ function AdminShell() {
         </TabsContent>
         <TabsContent value="reviews">
           <ReviewsPanel />
+        </TabsContent>
+        <TabsContent value="banners">
+          <BannersPanel />
         </TabsContent>
         <TabsContent value="areas">
           <AreasPanel thanas={catalog.thanas} />
