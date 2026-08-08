@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Info, MapPin, Phone, Plus, Utensils } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { distanceKm, type DiagnosticCenter } from "@/data/seed";
 import { catalogQueryOptions, decorate, useCatalog } from "@/lib/catalog";
