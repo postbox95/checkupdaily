@@ -27,6 +27,7 @@ import {
   type Thana,
 } from "@/data/seed";
 import { DAY_NAMES, branchOpenStatus } from "@/lib/hours";
+import { BannersPanel } from "@/components/admin/BannersPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
