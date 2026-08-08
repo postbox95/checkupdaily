@@ -124,6 +124,8 @@ function Home() {
         />
       </div>
 
+      <AdSlot placement="home_top" className="mx-auto mt-6 max-w-5xl px-4" />
+
       <section className="mx-auto mt-8 max-w-5xl px-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
