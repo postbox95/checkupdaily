@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { distanceKm } from "@/data/seed";
 import { useCatalog } from "@/lib/catalog";
 import { bdt, useAppStore } from "@/lib/store";
+import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
