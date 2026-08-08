@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
+import { AdSlot } from "@/components/AdSlot";
 import { TestSearch } from "@/components/TestSearch";
 import { StickySearch } from "@/components/StickySearch";
 import {
