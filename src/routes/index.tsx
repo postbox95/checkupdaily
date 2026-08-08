@@ -207,6 +207,8 @@ function Home() {
         </div>
       </section>
 
+      <AdSlot placement="home_bottom" className="mx-auto max-w-5xl px-4 pb-10" />
+
       <TrustedBy names={chains.map((c) => c.name)} />
     </main>
   );
