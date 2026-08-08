@@ -231,7 +231,13 @@ function TestPage() {
 
       <ul className="mt-4 space-y-3">
         {rows.map((r, i) => (
-          <li key={r.center.id} className="surface-card p-4">
+          <Fragment key={r.center.id}>
+          {i === 3 && (
+            <li>
+              <AdSlot placement="search_inline" />
+            </li>
+          )}
+          <li className="surface-card p-4">
             <div className="flex flex-wrap items-start gap-3">
               <LabLogo name={r.center.name} logoUrl={chainOf(r.center)?.logoUrl} />
               <div className="min-w-0 flex-1">
