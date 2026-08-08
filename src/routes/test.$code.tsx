@@ -349,6 +349,8 @@ function TestPage() {
           </li>
         )}
       </ul>
+
+      <AdSlot placement="search_bottom" className="mt-5" />
     </main>
   );
 }
