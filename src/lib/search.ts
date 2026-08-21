@@ -35,9 +35,9 @@ export function searchTests(all: MedicalTest[], query: string, limit = 8): Medic
 
 /** Tests that are commonly confused / redundant with each other. */
 const redundantGroups: string[][] = [
-  ["TEST-FBS", "TEST-RBS"],
-  ["TEST-CT-BRAIN", "TEST-MRI-BRAIN"],
-  ["TEST-ECG", "TEST-ECHO"],
+  ["fasting-blood-sugar-fbs", "random-blood-sugar-rbs"],
+  ["ct-scan-of-brain", "mri-of-brain"],
+  ["ecg-electrocardiogram", "echocardiogram-colour-doppler"],
 ];
 
 export function redundancyWarning(all: MedicalTest[], codes: string[]): string | null {
