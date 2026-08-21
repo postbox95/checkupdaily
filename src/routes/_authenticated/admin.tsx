@@ -397,7 +397,7 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
           key={editing?.id ?? "new"}
           initial={form}
           fields={[
-            { name: "code", label: "Code (TEST-XXX)" },
+            { name: "code", label: "Code (slug from test name, e.g. serum-creatinine)" },
             { name: "canonical_name", label: "English name" },
             { name: "bangla_name", label: "Bangla name" },
             { name: "category", label: "Category", options: TEST_CATEGORIES },
