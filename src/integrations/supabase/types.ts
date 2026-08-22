@@ -442,6 +442,66 @@ export type Database = {
           },
         ]
       }
+      seo_meta: {
+        Row: {
+          created_at: string
+          data: Json
+          entity_key: string
+          entity_type: string
+          id: string
+          lang: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          entity_key?: string
+          entity_type: string
+          id?: string
+          lang?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          entity_key?: string
+          entity_type?: string
+          id?: string
+          lang?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_redirects: {
+        Row: {
+          created_at: string
+          from_path: string
+          id: string
+          is_active: boolean
+          status_code: number
+          to_path: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_path: string
+          id?: string
+          is_active?: boolean
+          status_code?: number
+          to_path: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_path?: string
+          id?: string
+          is_active?: boolean
+          status_code?: number
+          to_path?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           key: string
