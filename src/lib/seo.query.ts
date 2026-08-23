@@ -64,7 +64,7 @@ function useInvalidate() {
 export function useSaveSeoRecord() {
   const invalidate = useInvalidate();
   return useMutation({
-    mutationFn: (data: Parameters<typeof saveSeoRecord>[0] extends never ? never : {
+    mutationFn: (data: {
       entityType: "global" | "page" | "test" | "center" | "chain" | "category";
       entityKey: string;
       lang: "en" | "bn";
