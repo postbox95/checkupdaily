@@ -356,7 +356,24 @@ export function TestPricePage({ test, seo }: { test: MedicalTest; seo?: SeoField
         )}
       </ul>
 
+      {!!seo?.faqs?.filter((f) => f.q && f.a).length && (
+        <section className="surface-card mt-5 p-5">
+          <h2 className="text-sm font-bold">Frequently asked questions</h2>
+          <dl className="mt-3 space-y-3">
+            {seo.faqs
+              .filter((f) => f.q && f.a)
+              .map((f, i) => (
+                <div key={i}>
+                  <dt className="text-sm font-semibold">{f.q}</dt>
+                  <dd className="mt-1 text-sm whitespace-pre-line text-muted-foreground">{f.a}</dd>
+                </div>
+              ))}
+          </dl>
+        </section>
+      )}
+
       <AdSlot placement="search_bottom" className="mt-5" />
+
     </main>
   );
 }
