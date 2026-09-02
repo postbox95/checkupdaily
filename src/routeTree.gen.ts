@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestsSlugRouteImport } from './routes/tests.$slug'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
 import { Route as ChainSlugRouteImport } from './routes/chain.$slug'
+import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicAdImageSplatRouteImport } from './routes/api/public/ad-image.$'
 
@@ -71,6 +72,11 @@ const ChainSlugRoute = ChainSlugRouteImport.update({
   path: '/chain/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategorySlugRoute = CategorySlugRouteImport.update({
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/category/$slug': typeof CategorySlugRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
   '/tests/$slug': typeof TestsSlugRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/category/$slug': typeof CategorySlugRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
   '/tests/$slug': typeof TestsSlugRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/category/$slug': typeof CategorySlugRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
   '/tests/$slug': typeof TestsSlugRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
+    | '/category/$slug'
     | '/chain/$slug'
     | '/test/$code'
     | '/tests/$slug'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
+    | '/category/$slug'
     | '/chain/$slug'
     | '/test/$code'
     | '/tests/$slug'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/category/$slug'
     | '/chain/$slug'
     | '/test/$code'
     | '/tests/$slug'
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CategorySlugRoute: typeof CategorySlugRoute
   ChainSlugRoute: typeof ChainSlugRoute
   TestCodeRoute: typeof TestCodeRoute
   TestsSlugRoute: typeof TestsSlugRoute
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChainSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/category/$slug': {
+      id: '/category/$slug'
+      path: '/category/$slug'
+      fullPath: '/category/$slug'
+      preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompareRoute: CompareRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CategorySlugRoute: CategorySlugRoute,
   ChainSlugRoute: ChainSlugRoute,
   TestCodeRoute: TestCodeRoute,
   TestsSlugRoute: TestsSlugRoute,
