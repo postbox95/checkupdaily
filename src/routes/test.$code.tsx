@@ -27,10 +27,10 @@ export const Route = createFileRoute("/test/$code")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Test not found — Niramoy Prices" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Test not found — MyTestReport" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.test.canonicalName} Price in Dhaka — Niramoy Prices`;
+    const title = `${loaderData.test.canonicalName} Price in Dhaka — MyTestReport`;
     const description = `Compare ${loaderData.test.canonicalName} prices across Dhaka diagnostic centres, including needle and registration charges.`;
     return {
       meta: [

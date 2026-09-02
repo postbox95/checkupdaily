@@ -57,7 +57,7 @@ export async function issueOtp(rawPhone: string) {
   });
   if (error) throw new Error(error.message);
 
-  const sent = await sendSms(phone, `Your Niramoy Prices verification code is ${code}`);
+  const sent = await sendSms(phone, `Your MyTestReport verification code is ${code}`);
   // Without an SMS provider configured we surface the code so the flow stays usable.
   return { phone, sent, devCode: sent ? null : code };
 }

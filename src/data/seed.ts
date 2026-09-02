@@ -152,7 +152,7 @@ export const emptyCatalog: Catalog = {
   chainPrices: [],
   thanas: [],
   settings: {
-    siteName: "Niramoy Prices",
+    siteName: "MyTestReport",
     tagline: "Compare diagnostic test prices across Dhaka",
     heroTitleEn: "Know the real price before you test",
     heroTitleBn: "পরীক্ষার আগেই আসল দাম জানুন",

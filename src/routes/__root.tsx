@@ -84,13 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Niramoy Prices — Diagnostic Test Price Comparison in Dhaka" },
+      { title: "MyTestReport — Diagnostic Test Price Comparison in Dhaka" },
       {
         name: "description",
         content:
           "Compare diagnostic test prices across Dhaka labs, including needle and registration charges.",
       },
-      { property: "og:title", content: "Niramoy Prices" },
+      { property: "og:title", content: "MyTestReport" },
       {
         property: "og:description",
         content: "Compare diagnostic test prices across Dhaka labs.",

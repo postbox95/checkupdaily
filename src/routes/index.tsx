@@ -19,13 +19,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Niramoy Prices — Compare Diagnostic Test Prices in Dhaka" },
+      { title: "MyTestReport — Compare Diagnostic Test Prices in Dhaka" },
       {
         name: "description",
         content:
           "Compare CBC, USG, Lipid Profile and more across Popular, Labaid, Ibn Sina, Praava and Medinova. See real totals including needle & registration charges.",
       },
-      { property: "og:title", content: "Niramoy Prices — Diagnostic Test Price Comparison, Dhaka" },
+      { property: "og:title", content: "MyTestReport — Diagnostic Test Price Comparison, Dhaka" },
       {
         property: "og:description",
         content:
