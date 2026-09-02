@@ -175,6 +175,12 @@ export function TestPricePage({ test, seo }: { test: MedicalTest; seo?: SeoField
 
       <section className="surface-card mt-4 p-5">
         <h2 className="text-sm font-bold">Why the price differs between labs</h2>
+        {seo?.whyPricesDiffer && (
+          <p className="mt-2 text-sm whitespace-pre-line text-muted-foreground">
+            {seo.whyPricesDiffer}
+          </p>
+        )}
+
         <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
           <li>
             <strong className="text-foreground">Registration / collection fee.</strong> Each branch
