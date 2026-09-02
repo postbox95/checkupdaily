@@ -178,8 +178,8 @@ function Home() {
           {visibleTests.map((test) => (
             <Link
               key={test.code}
-              to="/test/$code"
-              params={{ code: test.code }}
+              to="/tests/$slug"
+              params={{ slug: test.code }}
               className="surface-card group p-4 transition-shadow hover:shadow-[var(--shadow-float)]"
             >
               <div className="flex items-start justify-between gap-2">
