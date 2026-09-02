@@ -120,11 +120,28 @@ export function TestPricePage({ test, seo }: { test: MedicalTest; seo?: SeoField
         </div>
       </header>
 
+      {(seo?.intro || seo?.about) && (
+        <section className="surface-card mt-4 space-y-2 p-5 text-sm text-muted-foreground">
+          {seo?.intro && <p>{seo.intro}</p>}
+          {seo?.about && <p>{seo.about}</p>}
+        </section>
+      )}
+
+      {seo?.howItWorks && (
+        <section className="surface-card mt-4 p-5">
+          <h2 className="text-sm font-bold">How this test works</h2>
+          <p className="mt-2 text-sm whitespace-pre-line text-muted-foreground">{seo.howItWorks}</p>
+        </section>
+      )}
+
       <section className="surface-card mt-4 p-5">
         <h2 className="text-sm font-bold">How to prepare</h2>
-        {test.description && (
-          <p className="mt-2 text-sm text-muted-foreground">{test.description}</p>
+        {(seo?.preparation || test.description) && (
+          <p className="mt-2 text-sm whitespace-pre-line text-muted-foreground">
+            {seo?.preparation || test.description}
+          </p>
         )}
+
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           <li className="flex gap-2">
             <Utensils className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
