@@ -14,6 +14,7 @@ import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TestsSlugRouteImport } from './routes/tests.$slug'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
 import { Route as ChainSlugRouteImport } from './routes/chain.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -41,6 +42,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestsSlugRoute = TestsSlugRouteImport.update({
+  id: '/tests/$slug',
+  path: '/tests/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestCodeRoute = TestCodeRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/tests/$slug': typeof TestsSlugRoute
   '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/tests/$slug': typeof TestsSlugRoute
   '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/tests/$slug': typeof TestsSlugRoute
   '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chain/$slug'
     | '/test/$code'
+    | '/tests/$slug'
     | '/api/public/ad-image/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chain/$slug'
     | '/test/$code'
+    | '/tests/$slug'
     | '/api/public/ad-image/$'
   id:
     | '__root__'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/chain/$slug'
     | '/test/$code'
+    | '/tests/$slug'
     | '/api/public/ad-image/$'
   fileRoutesById: FileRoutesById
 }
@@ -138,6 +150,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ChainSlugRoute: typeof ChainSlugRoute
   TestCodeRoute: typeof TestCodeRoute
+  TestsSlugRoute: typeof TestsSlugRoute
   ApiPublicAdImageSplatRoute: typeof ApiPublicAdImageSplatRoute
 }
 
@@ -176,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tests/$slug': {
+      id: '/tests/$slug'
+      path: '/tests/$slug'
+      fullPath: '/tests/$slug'
+      preLoaderRoute: typeof TestsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/test/$code': {
@@ -228,6 +248,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ChainSlugRoute: ChainSlugRoute,
   TestCodeRoute: TestCodeRoute,
+  TestsSlugRoute: TestsSlugRoute,
   ApiPublicAdImageSplatRoute: ApiPublicAdImageSplatRoute,
 }
 export const routeTree = rootRouteImport
