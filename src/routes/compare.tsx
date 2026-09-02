@@ -16,7 +16,7 @@ import {
 export const Route = createFileRoute("/compare")({
   head: () => ({
     meta: [
-      { title: "Multi-Lab Prescription Comparison — Niramoy Prices" },
+      { title: "Multi-Lab Prescription Comparison — MyTestReport" },
       {
         name: "description",
         content:
@@ -87,7 +87,7 @@ function ComparePage() {
   const best = results[0];
 
   const summaryText = [
-    `Niramoy Prices — prescription comparison (${cart.length} tests)`,
+    `MyTestReport — prescription comparison (${cart.length} tests)`,
     ...cart.map((id) => `• ${testById(id)?.canonicalName}`),
     "",
     `Lowest total: ${best.center.name}, ${best.center.branchName} — ${bdt(best.total)} (${best.covered}/${cart.length} tests)`,

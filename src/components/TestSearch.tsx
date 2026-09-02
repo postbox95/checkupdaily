@@ -72,7 +72,7 @@ export function TestSearch({
       setActive((a) => (a - 1 + results.length) % results.length);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      navigate({ to: "/test/$code", params: { code: results[active].code } });
+      navigate({ to: "/tests/$slug", params: { slug: results[active].code } });
       setOpen(false);
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -126,7 +126,7 @@ export function TestSearch({
                 <button
                   className="min-w-0 flex-1 text-left"
                   onClick={() => {
-                    navigate({ to: "/test/$code", params: { code: test.code } });
+                    navigate({ to: "/tests/$slug", params: { slug: test.code } });
                     setOpen(false);
                   }}
                 >

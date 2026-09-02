@@ -42,11 +42,11 @@ import { REVIEW_STATUSES, type ReviewStatus } from "@/lib/reviews.types";
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Content Manager — Niramoy Prices Admin" },
+      { title: "Content Manager — MyTestReport Admin" },
       { name: "description", content: "Manage chains, tests, labs, prices, areas and settings." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Content Manager — Niramoy Prices Admin" },
-      { property: "og:description", content: "Admin CMS for the Niramoy Prices catalogue." },
+      { property: "og:title", content: "Content Manager — MyTestReport Admin" },
+      { property: "og:description", content: "Admin CMS for the MyTestReport catalogue." },
     ],
   }),
   component: () => (

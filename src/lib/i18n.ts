@@ -3,7 +3,7 @@ import type { Lang } from "./store";
 type Dict = Record<string, { en: string; bn: string }>;
 
 const dict: Dict = {
-  brand: { en: "Niramoy Prices", bn: "নিরাময় প্রাইস" },
+  brand: { en: "MyTestReport", bn: "মাইটেস্টরিপোর্ট" },
   tagline: {
     en: "Compare diagnostic test prices across Dhaka",
     bn: "ঢাকার ডায়াগনস্টিক টেস্টের দাম তুলনা করুন",

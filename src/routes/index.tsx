@@ -19,13 +19,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Niramoy Prices — Compare Diagnostic Test Prices in Dhaka" },
+      { title: "MyTestReport — Compare Diagnostic Test Prices in Dhaka" },
       {
         name: "description",
         content:
           "Compare CBC, USG, Lipid Profile and more across Popular, Labaid, Ibn Sina, Praava and Medinova. See real totals including needle & registration charges.",
       },
-      { property: "og:title", content: "Niramoy Prices — Diagnostic Test Price Comparison, Dhaka" },
+      { property: "og:title", content: "MyTestReport — Diagnostic Test Price Comparison, Dhaka" },
       {
         property: "og:description",
         content:
@@ -178,8 +178,8 @@ function Home() {
           {visibleTests.map((test) => (
             <Link
               key={test.code}
-              to="/test/$code"
-              params={{ code: test.code }}
+              to="/tests/$slug"
+              params={{ slug: test.code }}
               className="surface-card group p-4 transition-shadow hover:shadow-[var(--shadow-float)]"
             >
               <div className="flex items-start justify-between gap-2">

@@ -10,18 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TestsSlugRouteImport } from './routes/tests.$slug'
 import { Route as TestCodeRouteImport } from './routes/test.$code'
 import { Route as ChainSlugRouteImport } from './routes/chain.$slug'
+import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicAdImageSplatRouteImport } from './routes/api/public/ad-image.$'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -34,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -41,6 +55,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestsSlugRoute = TestsSlugRouteImport.update({
+  id: '/tests/$slug',
+  path: '/tests/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestCodeRoute = TestCodeRouteImport.update({
@@ -51,6 +70,11 @@ const TestCodeRoute = TestCodeRouteImport.update({
 const ChainSlugRoute = ChainSlugRouteImport.update({
   id: '/chain/$slug',
   path: '/chain/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategorySlugRoute = CategorySlugRouteImport.update({
+  id: '/category/$slug',
+  path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -66,78 +90,106 @@ const ApiPublicAdImageSplatRoute = ApiPublicAdImageSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/category/$slug': typeof CategorySlugRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/tests/$slug': typeof TestsSlugRoute
   '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/category/$slug': typeof CategorySlugRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/tests/$slug': typeof TestsSlugRoute
   '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/$': typeof SplatRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/category/$slug': typeof CategorySlugRoute
   '/chain/$slug': typeof ChainSlugRoute
   '/test/$code': typeof TestCodeRoute
+  '/tests/$slug': typeof TestsSlugRoute
   '/api/public/ad-image/$': typeof ApiPublicAdImageSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$'
     | '/auth'
     | '/compare'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
+    | '/category/$slug'
     | '/chain/$slug'
     | '/test/$code'
+    | '/tests/$slug'
     | '/api/public/ad-image/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$'
     | '/auth'
     | '/compare'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
+    | '/category/$slug'
     | '/chain/$slug'
     | '/test/$code'
+    | '/tests/$slug'
     | '/api/public/ad-image/$'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/$'
     | '/auth'
     | '/compare'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/category/$slug'
     | '/chain/$slug'
     | '/test/$code'
+    | '/tests/$slug'
     | '/api/public/ad-image/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CategorySlugRoute: typeof CategorySlugRoute
   ChainSlugRoute: typeof ChainSlugRoute
   TestCodeRoute: typeof TestCodeRoute
+  TestsSlugRoute: typeof TestsSlugRoute
   ApiPublicAdImageSplatRoute: typeof ApiPublicAdImageSplatRoute
 }
 
@@ -148,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -164,6 +223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -178,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tests/$slug': {
+      id: '/tests/$slug'
+      path: '/tests/$slug'
+      fullPath: '/tests/$slug'
+      preLoaderRoute: typeof TestsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/test/$code': {
       id: '/test/$code'
       path: '/test/$code'
@@ -190,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/chain/$slug'
       fullPath: '/chain/$slug'
       preLoaderRoute: typeof ChainSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/category/$slug': {
+      id: '/category/$slug'
+      path: '/category/$slug'
+      fullPath: '/category/$slug'
+      preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -223,11 +303,15 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  SplatRoute: SplatRoute,
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CategorySlugRoute: CategorySlugRoute,
   ChainSlugRoute: ChainSlugRoute,
   TestCodeRoute: TestCodeRoute,
+  TestsSlugRoute: TestsSlugRoute,
   ApiPublicAdImageSplatRoute: ApiPublicAdImageSplatRoute,
 }
 export const routeTree = rootRouteImport
