@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SplatRouteImport } from './routes/$'
@@ -24,6 +25,11 @@ import { Route as ApiPublicAdImageSplatRouteImport } from './routes/api/public/a
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/auth': typeof AuthRoute
   '/compare': typeof CompareRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/chain/$slug': typeof ChainSlugRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/auth'
     | '/compare'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
     | '/chain/$slug'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/auth'
     | '/compare'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/admin'
     | '/chain/$slug'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/auth'
     | '/compare'
+    | '/robots.txt'
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/chain/$slug'
@@ -160,6 +172,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   AuthRoute: typeof AuthRoute
   CompareRoute: typeof CompareRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ChainSlugRoute: typeof ChainSlugRoute
   TestCodeRoute: typeof TestCodeRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   AuthRoute: AuthRoute,
   CompareRoute: CompareRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ChainSlugRoute: ChainSlugRoute,
   TestCodeRoute: TestCodeRoute,
