@@ -4,7 +4,6 @@ import { CheckCircle2, CircleAlert, Plus, Search, Trash2 } from "lucide-react";
 import type { DiagnosticCenter, LabChain, MedicalTest } from "@/data/seed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -70,9 +69,9 @@ function GlobalEditor() {
     <div key={key} className={textarea ? "sm:col-span-2" : ""}>
       <Label htmlFor={`global-${key}`}>{label}</Label>
       {textarea ? (
-        <Textarea id={`global-${key}`} className={inputClass} value={String(form[key])} onChange={(e) => set(key, e.target.value as never)} />
+        <Textarea id={`global-${key}`} className={inputClass} value={String(form[key])} onChange={(e) => setForm((old) => ({ ...old, [key]: e.target.value }))} />
       ) : (
-        <Input id={`global-${key}`} className={inputClass} value={String(form[key])} onChange={(e) => set(key, e.target.value as never)} />
+        <Input id={`global-${key}`} className={inputClass} value={String(form[key])} onChange={(e) => setForm((old) => ({ ...old, [key]: e.target.value }))} />
       )}
     </div>
   );

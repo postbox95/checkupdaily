@@ -15,26 +15,22 @@ import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { bdt, useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
+import { seoBundleQueryOptions, globalOf, pickSeo } from "@/lib/seo.query";
+import { buildHead, organizationSchema, websiteSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "MyTestReport — Compare Diagnostic Test Prices in Dhaka" },
-      {
-        name: "description",
-        content:
-          "Compare CBC, USG, Lipid Profile and more across Popular, Labaid, Ibn Sina, Praava and Medinova. See real totals including needle & registration charges.",
-      },
-      { property: "og:title", content: "MyTestReport — Diagnostic Test Price Comparison, Dhaka" },
-      {
-        property: "og:description",
-        content:
-          "Search any medical test in English or Bangla and compare the true out-of-pocket bill across Dhaka diagnostic centres.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(seoBundleQueryOptions),
+  head: ({ loaderData }) => {
+    const global = globalOf(loaderData);
+    return buildHead({
+      global,
+      seo: pickSeo(loaderData, "page", "home", global.defaultLang),
+      path: "/",
+      fallbackTitle: global.defaultTitle,
+      fallbackDescription: global.defaultDescription,
+      jsonLd: [organizationSchema(global), websiteSchema(global)],
+    });
+  },
   component: Home,
 });
 

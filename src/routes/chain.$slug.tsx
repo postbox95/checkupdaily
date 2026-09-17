@@ -9,28 +9,53 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { chainProfileQuery, useRequestOtp, useSubmitReview } from "@/lib/reviews";
 import type { ChainProfile } from "@/lib/reviews.types";
+import { seoBundleQueryOptions, globalOf, pickSeo } from "@/lib/seo.query";
+import { breadcrumbSchema, buildHead, faqSchema, localBusinessSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/chain/$slug")({
   loader: async ({ params, context }) => {
-    const data = await context.queryClient.ensureQueryData(chainProfileQuery(params.slug, 1));
+    const [data, bundle] = await Promise.all([
+      context.queryClient.ensureQueryData(chainProfileQuery(params.slug, 1)),
+      context.queryClient.ensureQueryData(seoBundleQueryOptions),
+    ]);
     if (!data) throw notFound();
-    return { name: data.chain.name, branches: data.branches.length };
+    const global = globalOf(bundle);
+    return {
+      profile: data,
+      global,
+      seo: pickSeo(bundle, "chain", data.chain.slug, global.defaultLang),
+    };
   },
   head: ({ loaderData }) => {
     if (!loaderData)
       return { meta: [{ title: "Lab chain not found" }, { name: "robots", content: "noindex" }] };
-    const title = `${loaderData.name} — branches, prices & patient reviews`;
-    const description = `${loaderData.name} has ${loaderData.branches} branches in Dhaka. Read verified patient reviews and compare test prices branch by branch.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
+    const { profile, global, seo } = loaderData;
+    const path = `/chain/${seo?.slug || profile.chain.slug}`;
+    const description = `${profile.chain.name} has ${profile.branches.length} branches in Dhaka. Read verified patient reviews and compare test prices branch by branch.`;
+    return buildHead({
+      global,
+      seo,
+      path,
+      fallbackTitle: `${profile.chain.name} — branches, prices & patient reviews`,
+      fallbackDescription: description,
+      image: profile.chain.logoUrl,
+      jsonLd: [
+        breadcrumbSchema(global, [{ name: "Home", path: "/" }, { name: profile.chain.name, path }]),
+        faqSchema(seo?.faqs),
+        ...profile.branches.map((branch) => localBusinessSchema(global, {
+          name: profile.chain.name,
+          branchName: branch.branchName,
+          address: branch.address,
+          thana: branch.thana,
+          city: branch.city,
+          phone: branch.contactPhone,
+          latitude: branch.latitude,
+          longitude: branch.longitude,
+          url: path,
+          logo: profile.chain.logoUrl,
+        })),
+      ].filter(Boolean),
+    });
   },
   component: ChainPage,
   errorComponent: () => (
@@ -51,6 +76,7 @@ function ChainPage() {
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const { data, isFetching } = useQuery(chainProfileQuery(slug, page));
+  const { seo } = Route.useLoaderData();
 
   if (!data) return <main className="mx-auto max-w-3xl px-4 py-16" />;
   const { chain, branches, areas, summary, reviews } = data;
@@ -80,6 +106,8 @@ function ChainPage() {
           )}
         </div>
       </header>
+
+      {seo?.intro && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{seo.intro}</p>}
 
       {/* review summary */}
       <section className="surface-card mt-4 p-5" aria-label="Review summary">
@@ -231,6 +259,20 @@ function ChainPage() {
           </div>
         )}
       </section>
+
+      {!!seo?.faqs?.filter((faq) => faq.q && faq.a).length && (
+        <section className="surface-card mt-6 p-5">
+          <h2 className="text-sm font-bold">Frequently asked questions</h2>
+          <dl className="mt-3 space-y-3">
+            {seo.faqs.filter((faq) => faq.q && faq.a).map((faq, index) => (
+              <div key={index}>
+                <dt className="text-sm font-semibold">{faq.q}</dt>
+                <dd className="mt-1 text-sm text-muted-foreground">{faq.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       <AdSlot placement="chain_bottom" className="mt-5" />
     </main>

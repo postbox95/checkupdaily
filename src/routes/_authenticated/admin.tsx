@@ -28,6 +28,7 @@ import {
 } from "@/data/seed";
 import { DAY_NAMES, branchOpenStatus } from "@/lib/hours";
 import { BannersPanel } from "@/components/admin/BannersPanel";
+import { SeoPanel } from "@/components/admin/SeoPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -127,7 +128,8 @@ function AdminShell() {
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="banners">Ad banners</TabsTrigger>
           <TabsTrigger value="areas">Areas</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="settings">Site settings</TabsTrigger>
+          <TabsTrigger value="seo">SEO settings</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
@@ -154,6 +156,14 @@ function AdminShell() {
         </TabsContent>
         <TabsContent value="settings">
           <SettingsPanel settings={{ ...catalog.settings }} />
+        </TabsContent>
+        <TabsContent value="seo">
+          <SeoPanel
+            tests={catalog.tests}
+            chains={catalog.chains}
+            centers={catalog.centers}
+            categories={TEST_CATEGORIES}
+          />
         </TabsContent>
         <TabsContent value="users">
           <UsersPanel />
@@ -1115,7 +1125,6 @@ function SettingsPanel({ settings }: { settings: Record<string, unknown> }) {
       {field("currencySymbol", "Currency symbol")}
       {field("supportPhone", "Support phone")}
       {field("maxSearchRadiusKm", "Max search radius (km)")}
-      {field("metaDescription", "SEO meta description", true)}
       <Button
         onClick={() =>
           save.mutate({
