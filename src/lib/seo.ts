@@ -106,6 +106,7 @@ export function buildHead(input: BuildHeadInput) {
     { name: "description", content: description },
     { name: "robots", content: robotsContent(index, follow) },
     { property: "og:site_name", content: g.siteName },
+    { property: "og:type", content: "website" },
     { property: "og:title", content: trim(s.ogTitle) || title },
     { property: "og:description", content: trim(s.ogDescription) || description },
     { property: "og:url", content: canonical },

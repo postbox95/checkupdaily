@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SeoEntityType, SeoFields, SeoLang } from "./seo.types";
+import type { GlobalSeo, SeoEntityType, SeoFields, SeoLang } from "./seo.types";
 import {
   assertAdminCtx,
   loadRedirects,
@@ -21,7 +21,12 @@ export const listSeoRecords = createServerFn({ method: "GET" })
 export const saveSeoRecord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { entityType: SeoEntityType; entityKey: string; lang: SeoLang; data: SeoFields }) => d,
+    (d: {
+      entityType: SeoEntityType;
+      entityKey: string;
+      lang: SeoLang;
+      data: SeoFields | Partial<GlobalSeo>;
+    }) => d,
   )
   .handler(async ({ data, context }) => {
     await assertAdminCtx(context);

@@ -68,7 +68,7 @@ export function useSaveSeoRecord() {
       entityType: "global" | "page" | "test" | "center" | "chain" | "category";
       entityKey: string;
       lang: "en" | "bn";
-      data: SeoFields;
+      data: SeoFields | Partial<GlobalSeo>;
     }) => saveSeoRecord({ data }),
     onSuccess: () => {
       invalidate();
