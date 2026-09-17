@@ -12,6 +12,16 @@ export const Route = createFileRoute("/$")({
     }
     throw notFound();
   },
-  head: () => ({ meta: [{ title: "Page not found" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [
+      { title: "Page not found — MyTestReport" },
+      { name: "description", content: "The requested MyTestReport page could not be found." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Page not found — MyTestReport" },
+      { property: "og:description", content: "The requested MyTestReport page could not be found." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: () => null,
 });

@@ -48,6 +48,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Content Manager — MyTestReport Admin" },
       { property: "og:description", content: "Admin CMS for the MyTestReport catalogue." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: () => (

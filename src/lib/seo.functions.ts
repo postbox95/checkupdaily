@@ -5,7 +5,6 @@ import {
   assertAdminCtx,
   loadRedirects,
   loadSeoBundle,
-  loadSeoRecords,
   normalisePath,
 } from "./seo.server";
 
