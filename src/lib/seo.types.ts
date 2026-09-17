@@ -61,7 +61,7 @@ export interface GlobalSeo {
 
 export const DEFAULT_GLOBAL_SEO: GlobalSeo = {
   siteName: "MyTestReport",
-  siteUrl: "https://mytestreport.com",
+  siteUrl: "https://med-compare-bd.lovable.app",
   defaultTitle: "Diagnostic Test Prices in Bangladesh | MyTestReport",
   defaultDescription:
     "Compare diagnostic test prices across Bangladesh. Find lab-wise test costs, collection charges, preparation details and nearby diagnostic centres.",

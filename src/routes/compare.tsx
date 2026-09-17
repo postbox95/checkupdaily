@@ -12,24 +12,25 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { seoBundleQueryOptions, globalOf, pickSeo } from "@/lib/seo.query";
+import { buildHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/compare")({
-  head: () => ({
-    meta: [
-      { title: "Multi-Lab Prescription Comparison — MyTestReport" },
-      {
-        name: "description",
-        content:
-          "Add your whole prescription and see the total bill at every Dhaka diagnostic centre, including needle and registration charges.",
-      },
-      { property: "og:title", content: "Compare your full prescription across Dhaka labs" },
-      {
-        property: "og:description",
-        content: "Itemised totals, missing-test warnings and the lowest combined bill for your prescription.",
-      },
-    ],
-  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(seoBundleQueryOptions),
+  head: ({ loaderData }) => {
+    const global = globalOf(loaderData);
+    const bundle = loaderData ?? { records: {} };
+    return buildHead({
+      global,
+      seo: pickSeo(bundle, "page", "compare", global.defaultLang),
+      path: "/compare",
+      fallbackTitle: "Multi-Lab Prescription Comparison — MyTestReport",
+      fallbackDescription: "Add your whole prescription and compare the total bill across Dhaka diagnostic centres, including test-specific and registration charges.",
+      forceNoindex: true,
+    });
+  },
   component: ComparePage,
+  errorComponent: () => <main className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-muted-foreground">We could not load your comparison right now. Please try again.</main>,
 });
 
 function ComparePage() {

@@ -1,11 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SeoEntityType, SeoFields, SeoLang } from "./seo.types";
+import type { GlobalSeo, SeoEntityType, SeoFields, SeoLang } from "./seo.types";
 import {
   assertAdminCtx,
   loadRedirects,
   loadSeoBundle,
-  loadSeoRecords,
   normalisePath,
 } from "./seo.server";
 
@@ -15,13 +14,30 @@ export const listSeoRecords = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdminCtx(context);
-    return loadSeoRecords();
+    const { data, error } = await context.supabase
+      .from("seo_meta")
+      .select("*")
+      .order("entity_type");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      entityType: row.entity_type as SeoEntityType,
+      entityKey: row.entity_key ?? "",
+      lang: (row.lang ?? "en") as SeoLang,
+      data: (row.data ?? {}) as SeoFields,
+      updatedAt: row.updated_at,
+    }));
   });
 
 export const saveSeoRecord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { entityType: SeoEntityType; entityKey: string; lang: SeoLang; data: SeoFields }) => d,
+    (d: {
+      entityType: SeoEntityType;
+      entityKey: string;
+      lang: SeoLang;
+      data: SeoFields | Partial<GlobalSeo>;
+    }) => d,
   )
   .handler(async ({ data, context }) => {
     await assertAdminCtx(context);
@@ -53,7 +69,19 @@ export const listSeoRedirects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdminCtx(context);
-    return loadRedirects(false);
+    const { data, error } = await context.supabase
+      .from("seo_redirects")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      fromPath: row.from_path,
+      toPath: row.to_path,
+      statusCode: row.status_code,
+      isActive: row.is_active,
+      createdAt: row.created_at,
+    }));
   });
 
 export const saveSeoRedirect = createServerFn({ method: "POST" })
