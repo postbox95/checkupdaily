@@ -53,7 +53,6 @@ export const Route = createFileRoute("/tests/$slug")({
       jsonLd: [
         breadcrumbSchema(g, [
           { name: "Home", path: "/" },
-          { name: "Tests", path: "/tests" },
           { name: test.canonicalName, path },
         ]),
         faqSchema(seo?.faqs),

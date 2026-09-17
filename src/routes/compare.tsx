@@ -19,9 +19,10 @@ export const Route = createFileRoute("/compare")({
   loader: ({ context }) => context.queryClient.ensureQueryData(seoBundleQueryOptions),
   head: ({ loaderData }) => {
     const global = globalOf(loaderData);
+    const bundle = loaderData ?? { records: {} };
     return buildHead({
       global,
-      seo: pickSeo(loaderData, "page", "compare", global.defaultLang),
+      seo: pickSeo(bundle, "page", "compare", global.defaultLang),
       path: "/compare",
       fallbackTitle: "Multi-Lab Prescription Comparison — MyTestReport",
       fallbackDescription: "Add your whole prescription and compare the total bill across Dhaka diagnostic centres, including test-specific and registration charges.",
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/compare")({
     });
   },
   component: ComparePage,
+  errorComponent: () => <main className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-muted-foreground">We could not load your comparison right now. Please try again.</main>,
 });
 
 function ComparePage() {

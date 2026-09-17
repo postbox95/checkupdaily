@@ -22,9 +22,10 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(seoBundleQueryOptions),
   head: ({ loaderData }) => {
     const global = globalOf(loaderData);
+    const bundle = loaderData ?? { records: {} };
     return buildHead({
       global,
-      seo: pickSeo(loaderData, "page", "home", global.defaultLang),
+      seo: pickSeo(bundle, "page", "home", global.defaultLang),
       path: "/",
       fallbackTitle: global.defaultTitle,
       fallbackDescription: global.defaultDescription,
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/")({
     });
   },
   component: Home,
+  errorComponent: () => <main className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-muted-foreground">We could not load the latest test catalogue. Please try again.</main>,
 });
 
 const CATEGORY_GROUPS: { label: string; match: (name: string, code: string) => boolean }[] = [

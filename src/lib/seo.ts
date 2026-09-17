@@ -98,8 +98,9 @@ export function buildHead(input: BuildHeadInput) {
   const follow = s.robotsFollow ?? g.robotsFollow;
 
   const image = trim(s.ogImage) || trim(input.image) || trim(g.ogImage);
-  const absImage = image ? absUrl(g, image) : "";
-  const twImage = trim(s.twitterImage) || absImage;
+  const absImage = /^https:\/\//i.test(image) ? image : "";
+  const twitterCandidate = trim(s.twitterImage) || absImage;
+  const twImage = /^https:\/\//i.test(twitterCandidate) ? twitterCandidate : "";
 
   const meta: HeadTag[] = [
     { title },
@@ -118,7 +119,7 @@ export function buildHead(input: BuildHeadInput) {
     },
   ];
   if (absImage) meta.push({ property: "og:image", content: absImage });
-  if (twImage) meta.push({ name: "twitter:image", content: absUrl(g, twImage) });
+  if (twImage) meta.push({ name: "twitter:image", content: twImage });
 
   const scripts = (input.jsonLd ?? [])
     .filter(Boolean)
