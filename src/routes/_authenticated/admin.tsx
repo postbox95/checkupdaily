@@ -186,11 +186,58 @@ const toLines = (v: unknown) =>
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+const matches = (q: string, ...fields: (string | null | undefined)[]) => {
+  const term = q.trim().toLowerCase();
+  if (!term) return true;
+  return fields.some((f) => String(f ?? "").toLowerCase().includes(term));
+};
+
+function AdminSearch({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative w-full sm:max-w-xs">
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="pr-12"
+        aria-label={placeholder}
+      />
+      {Boolean(value) && (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          clear
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ResultCount({ shown, total, noun }: { shown: number; total: number; noun: string }) {
+  if (shown === total) return null;
+  return (
+    <p className="text-xs text-muted-foreground">
+      Showing {shown} of {total} {noun}
+    </p>
+  );
+}
+
 /* --------------------------------- chains --------------------------------- */
 
 function ChainsPanel({ catalog }: { catalog: Catalog }) {
   const [editing, setEditing] = useState<LabChain | null>(null);
   const [creating, setCreating] = useState(false);
+  const [q, setQ] = useState("");
   const save = useSaveRecord(() => { setEditing(null); setCreating(false); });
   const del = useDeleteRecord();
   const push = usePushChain();
@@ -236,7 +283,15 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
         A chain owns the brand-level defaults: registration/collection fee, home collection, and the
         shared price template used by every branch that has not set its own override.
       </p>
-      <Button size="sm" onClick={() => { setCreating(true); setEditing(null); }}>+ New chain</Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" onClick={() => { setCreating(true); setEditing(null); }}>+ New chain</Button>
+        <AdminSearch value={q} onChange={setQ} placeholder="Search chains by name or slug…" />
+      </div>
+      <ResultCount
+        shown={catalog.chains.filter((ch) => matches(q, ch.name, ch.slug)).length}
+        total={catalog.chains.length}
+        noun="chains"
+      />
 
       {(creating || editing) && (
         <RecordForm
@@ -279,7 +334,7 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
       )}
 
       <div className="surface-card divide-y divide-border">
-        {catalog.chains.map((ch) => {
+        {catalog.chains.filter((ch) => matches(q, ch.name, ch.slug)).map((ch) => {
           const branches = catalog.branchesOfChain(ch.id);
           const overrides = branches.filter((b) => b.sampleCollectionFeeOverride !== null).length;
           const overwrite = pushOverwrite[ch.id] ?? false;
@@ -306,12 +361,12 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
                       : ""}
                   </p>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => { setEditing(ch); setCreating(false); }}>
+                <Button size="sm" variant="secondary" onClick={() => { setEditing(ch); setCreating(false); }}>
                   Edit
                 </Button>
                 <Button
                   size="sm"
-                  variant="ghost"
+                  variant="destructive"
                   onClick={() => confirm(`Delete chain ${ch.name}? Branches keep their own data.`) && del.mutate({ table: "lab_chains", id: ch.id })}
                 >
                   Delete
@@ -330,13 +385,13 @@ function ChainsPanel({ catalog }: { catalog: Catalog }) {
                   {overwrite ? "All branches will be reset to chain defaults." : "Only branches still on the default are touched."}
                 </span>
                 <div className="ml-auto flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "fee", overwriteOverrides: overwrite })}>
+                  <Button size="sm" onClick={() => push.mutate({ chainId: ch.id, what: "fee", overwriteOverrides: overwrite })}>
                     Push fee to all branches
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "prices", overwriteOverrides: overwrite })}>
+                  <Button size="sm" onClick={() => push.mutate({ chainId: ch.id, what: "prices", overwriteOverrides: overwrite })}>
                     Push price template
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => push.mutate({ chainId: ch.id, what: "hours", overwriteOverrides: overwrite })}>
+                  <Button size="sm" onClick={() => push.mutate({ chainId: ch.id, what: "hours", overwriteOverrides: overwrite })}>
                     Push hours to all branches
                   </Button>
                 </div>
@@ -372,6 +427,10 @@ const emptyTest = {
 function TestsPanel({ tests }: { tests: MedicalTest[] }) {
   const [editing, setEditing] = useState<MedicalTest | null>(null);
   const [creating, setCreating] = useState(false);
+  const [q, setQ] = useState("");
+  const visibleTests = tests.filter((t) =>
+    matches(q, t.canonicalName, t.banglaName, t.code, t.category, t.synonyms.join(" ")),
+  );
   const save = useSaveRecord(() => {
     setEditing(null);
     setCreating(false);
@@ -400,9 +459,13 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
 
   return (
     <div className="mt-4 space-y-4">
-      <Button size="sm" onClick={() => { setCreating(true); setEditing(null); }}>
-        + New test
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" onClick={() => { setCreating(true); setEditing(null); }}>
+          + New test
+        </Button>
+        <AdminSearch value={q} onChange={setQ} placeholder="Search tests by name, code, category…" />
+      </div>
+      <ResultCount shown={visibleTests.length} total={tests.length} noun="tests" />
 
       {(creating || editing) && (
         <RecordForm
@@ -444,7 +507,7 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
       )}
 
       <div className="surface-card divide-y divide-border">
-        {tests.map((t) => (
+        {visibleTests.map((t) => (
           <div key={t.id} className="flex flex-wrap items-center gap-3 p-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">
@@ -455,12 +518,12 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
                 {t.isGovernmentRate ? " · government rate" : ""}
               </p>
             </div>
-            <Button size="sm" variant="outline" onClick={() => { setEditing(t); setCreating(false); }}>
+            <Button size="sm" variant="secondary" onClick={() => { setEditing(t); setCreating(false); }}>
               Edit
             </Button>
             <Button
               size="sm"
-              variant="ghost"
+              variant="destructive"
               onClick={() => confirm(`Delete ${t.canonicalName}?`) && del.mutate({ table: "medical_tests", id: t.id })}
             >
               Delete
@@ -493,6 +556,7 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
   const { centers, thanas, chains } = catalog;
   const [editing, setEditing] = useState<DiagnosticCenter | null>(null);
   const [creating, setCreating] = useState(false);
+  const [q, setQ] = useState("");
   const save = useSaveRecord(() => { setEditing(null); setCreating(false); });
   const del = useDeleteRecord();
 
@@ -549,9 +613,12 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
         Branches always own their address, phone, coordinates and area. Fee and home collection
         either inherit the chain default or carry an explicit override.
       </p>
-      <Button size="sm" disabled={!chains.length} onClick={() => { setCreating(true); setEditing(null); }}>
-        + New branch
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" disabled={!chains.length} onClick={() => { setCreating(true); setEditing(null); }}>
+          + New branch
+        </Button>
+        <AdminSearch value={q} onChange={setQ} placeholder="Search branches by name, area, chain…" />
+      </div>
       {!chains.length && (
         <p className="text-xs text-destructive">Create a lab chain first — branches belong to a chain.</p>
       )}
@@ -635,7 +702,21 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
       )}
 
       <div className="surface-card divide-y divide-border">
-        {centers.map((c) => {
+        {centers
+          .filter((c) =>
+            matches(
+              q,
+              c.branchName,
+              c.name,
+              c.thana,
+              c.city,
+              c.address,
+              c.contactPhone,
+              c.slug,
+              c.labChainId ? catalog.chainById(c.labChainId)?.name : "",
+            ),
+          )
+          .map((c) => {
           const chain = c.labChainId ? catalog.chainById(c.labChainId) : undefined;
           const inheritedFee = c.sampleCollectionFeeOverride === null;
           return (
@@ -665,10 +746,10 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
                   </Badge>
                 </p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => { setEditing(c); setCreating(false); }}>Edit</Button>
+              <Button size="sm" variant="secondary" onClick={() => { setEditing(c); setCreating(false); }}>Edit</Button>
               <Button
                 size="sm"
-                variant="ghost"
+                variant="destructive"
                 onClick={() => confirm(`Delete ${c.branchName}?`) && del.mutate({ table: "diagnostic_centers", id: c.id })}
               >
                 Delete
@@ -707,6 +788,10 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
   const [percent, setPercent] = useState(0);
   const [bulkDiscType, setBulkDiscType] = useState<DiscountType>("percent");
   const [bulkDiscValue, setBulkDiscValue] = useState(0);
+  const [q, setQ] = useState("");
+  const visibleTests = catalog.tests.filter((t) =>
+    matches(q, t.canonicalName, t.banglaName, t.code, t.category),
+  );
 
   const baseRows = useMemo(() => {
     const map: Record<string, DraftRow> = {};
@@ -815,11 +900,17 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
             </select>
           </div>
         )}
-        <Button size="sm" onClick={saveAll} disabled={!dirtyIds.length}>
+        <div>
+          <Label>Find test</Label>
+          <div className="mt-1">
+            <AdminSearch value={q} onChange={setQ} placeholder="Search tests…" />
+          </div>
+        </div>
+        <Button size="sm" variant="success" onClick={saveAll} disabled={!dirtyIds.length}>
           Save all changes{dirtyIds.length ? ` (${dirtyIds.length})` : ""}
         </Button>
         {Boolean(dirtyIds.length) && (
-          <Button size="sm" variant="ghost" onClick={() => setDraft({})}>Discard</Button>
+          <Button size="sm" variant="outline" onClick={() => setDraft({})}>Discard</Button>
         )}
       </div>
 
@@ -841,7 +932,6 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
           </div>
           <Button
             size="sm"
-            variant="outline"
             disabled={!selected.length || !percent}
             onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "adjust", percent })}
           >
@@ -864,7 +954,6 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
           </div>
           <Button
             size="sm"
-            variant="outline"
             disabled={!selected.length}
             onClick={() =>
               bulk.mutate({ scope, targetId, testIds: selected, action: "discount", discountType: bulkDiscType, discountValue: bulkDiscValue })
@@ -872,20 +961,20 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
           >
             Set discount
           </Button>
-          <Button size="sm" variant="outline" disabled={!selected.length} onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "availability", isAvailable: true })}>
+          <Button size="sm" variant="success" disabled={!selected.length} onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "availability", isAvailable: true })}>
             Mark offered
           </Button>
-          <Button size="sm" variant="outline" disabled={!selected.length} onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "availability", isAvailable: false })}>
+          <Button size="sm" variant="warning" disabled={!selected.length} onClick={() => bulk.mutate({ scope, targetId, testIds: selected, action: "availability", isAvailable: false })}>
             Mark not offered
           </Button>
           {scope === "branch" && (
-            <Button size="sm" variant="outline" disabled={!selected.length} onClick={() => reset.mutate({ centerId, testIds: selected })}>
+            <Button size="sm" variant="secondary" disabled={!selected.length} onClick={() => reset.mutate({ centerId, testIds: selected })}>
               Reset to chain default
             </Button>
           )}
           <Button
             size="sm"
-            variant="ghost"
+            variant="destructive"
             disabled={!selected.length}
             onClick={() => confirm(`Delete ${selected.length} price rows?`) && bulk.mutate({ scope, targetId, testIds: selected, action: "delete" })}
           >
@@ -895,7 +984,7 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
       </div>
 
       <div className="surface-card divide-y divide-border">
-        {catalog.tests.map((t) => {
+        {visibleTests.map((t) => {
           const r = rowOf(t.id);
           const dirty = Boolean(draft[t.id]);
           const final = r.discountType === "percent"
@@ -964,7 +1053,7 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
                 <Switch checked={r.isAvailable} onCheckedChange={(v) => setRow(t.id, { isAvailable: v })} /> Offered
               </label>
               {scope === "branch" && !r.inherited && (
-                <Button size="sm" variant="ghost" onClick={() => reset.mutate({ centerId, testIds: [t.id] })}>
+                <Button size="sm" variant="secondary" onClick={() => reset.mutate({ centerId, testIds: [t.id] })}>
                   Reset
                 </Button>
               )}
@@ -986,6 +1075,8 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
   const [lng, setLng] = useState(90.39);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState({ name: "", latitude: 0, longitude: 0 });
+  const [q, setQ] = useState("");
+  const visible = thanas.filter((t) => matches(q, t.name));
 
   const startEdit = (t: Thana) => {
     setEditId(t.id);
@@ -1018,8 +1109,12 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
           Add area
         </Button>
       </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <AdminSearch value={q} onChange={setQ} placeholder="Search areas…" />
+        <ResultCount shown={visible.length} total={thanas.length} noun="areas" />
+      </div>
       <div className="surface-card divide-y divide-border">
-        {thanas.map((t) =>
+        {visible.map((t) =>
           editId === t.id ? (
             <div key={t.id} className="flex flex-wrap items-end gap-3 p-3">
               <div>
@@ -1050,6 +1145,7 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
               </div>
               <Button
                 size="sm"
+                variant="success"
                 disabled={!draft.name || save.isPending}
                 onClick={() =>
                   save.mutate(
@@ -1064,7 +1160,7 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
               >
                 Save
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setEditId(null)}>
+              <Button size="sm" variant="outline" onClick={() => setEditId(null)}>
                 Cancel
               </Button>
             </div>
@@ -1074,10 +1170,10 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
               <span className="text-xs text-muted-foreground">
                 {t.latitude.toFixed(4)}, {t.longitude.toFixed(4)}
               </span>
-              <Button size="sm" variant="ghost" onClick={() => startEdit(t)}>
+              <Button size="sm" variant="secondary" onClick={() => startEdit(t)}>
                 Edit
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => del.mutate({ table: "thanas", id: t.id })}>
+              <Button size="sm" variant="destructive" onClick={() => del.mutate({ table: "thanas", id: t.id })}>
                 Delete
               </Button>
             </div>
@@ -1146,10 +1242,14 @@ function SettingsPanel({ settings }: { settings: Record<string, unknown> }) {
 function UsersPanel() {
   const { data: staff } = useSuspenseQuery(staffQuery);
   const setRole = useSetUserRole();
+  const [q, setQ] = useState("");
+  const visible = staff.filter((u) => matches(q, u.email, u.id, u.roles.join(" ")));
 
   return (
-    <div className="surface-card mt-4 divide-y divide-border">
-      {staff.map((u) => (
+    <div className="mt-4 space-y-3">
+    <AdminSearch value={q} onChange={setQ} placeholder="Search users by email or role…" />
+    <div className="surface-card divide-y divide-border">
+      {visible.map((u) => (
         <div key={u.id} className="flex flex-wrap items-center gap-3 p-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{u.email ?? u.id}</p>
@@ -1159,7 +1259,7 @@ function UsersPanel() {
             <Button
               key={role}
               size="sm"
-              variant={u.roles.includes(role) ? "default" : "outline"}
+              variant={u.roles.includes(role) ? "destructive" : "success"}
               onClick={() => setRole.mutate({ userId: u.id, role, grant: !u.roles.includes(role) })}
             >
               {u.roles.includes(role) ? `Remove ${role}` : `Make ${role}`}
@@ -1167,6 +1267,10 @@ function UsersPanel() {
           ))}
         </div>
       ))}
+      {!visible.length && (
+        <p className="p-4 text-sm text-muted-foreground">No users match this search.</p>
+      )}
+    </div>
     </div>
   );
 }
@@ -1181,13 +1285,15 @@ function ReviewsPanel() {
   const [rating, setRating] = useState("all");
   const [status, setStatus] = useState("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [q, setQ] = useState("");
 
   const rows = (reviews ?? []).filter(
     (r) =>
       (chain === "all" || r.chainId === chain) &&
       (branch === "all" || r.branchLabel === branch) &&
       (rating === "all" || String(r.rating) === rating) &&
-      (status === "all" || r.status === status),
+      (status === "all" || r.status === status) &&
+      matches(q, r.chainName, r.branchLabel, r.reviewText, r.billingId, r.maskedPhone, r.testName),
   );
 
   const chains = [...new Map((reviews ?? []).map((r) => [r.chainId, r.chainName])).entries()];
@@ -1238,6 +1344,7 @@ function ReviewsPanel() {
         {select(rating, setRating, [5, 4, 3, 2, 1].map((r) => ({ value: String(r), label: `${r} star` })), "Rating")}
         {select(status, setStatus, REVIEW_STATUSES.map((s) => ({ value: s, label: s })), "Status")}
       </div>
+      <AdminSearch value={q} onChange={setQ} placeholder="Search reviews by text, bill, phone…" />
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading reviews…</p>}
 
@@ -1283,17 +1390,17 @@ function ReviewsPanel() {
             )}
             <div className="flex flex-wrap gap-2">
               {r.status !== "flagged" && (
-                <Button size="sm" variant="outline" onClick={() => act(r.id, "flagged")}>
+                <Button size="sm" variant="warning" onClick={() => act(r.id, "flagged")}>
                   Flag as fake
                 </Button>
               )}
               {r.status !== "deleted" && (
-                <Button size="sm" variant="ghost" onClick={() => act(r.id, "deleted")}>
+                <Button size="sm" variant="destructive" onClick={() => act(r.id, "deleted")}>
                   Delete
                 </Button>
               )}
               {r.status !== "published" && (
-                <Button size="sm" onClick={() => act(r.id, "published")}>
+                <Button size="sm" variant="success" onClick={() => act(r.id, "published")}>
                   Restore
                 </Button>
               )}
