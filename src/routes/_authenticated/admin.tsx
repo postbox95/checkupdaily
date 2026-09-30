@@ -557,10 +557,12 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
   const [editing, setEditing] = useState<DiagnosticCenter | null>(null);
   const [creating, setCreating] = useState(false);
   const [q, setQ] = useState("");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const save = useSaveRecord(() => { setEditing(null); setCreating(false); });
   const del = useDeleteRecord();
 
   const chainOptions = chains.map((c) => ({ value: c.id, label: c.name }));
+
 
   const initial = editing
     ? {
@@ -701,29 +703,39 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
         />
       )}
 
-      <div className="surface-card divide-y divide-border">
-        {centers
-          .filter((c) =>
-            matches(
-              q,
-              c.branchName,
-              c.name,
-              c.thana,
-              c.city,
-              c.address,
-              c.contactPhone,
-              c.slug,
-              c.labChainId ? catalog.chainById(c.labChainId)?.name : "",
-            ),
-          )
-          .map((c) => {
+      {(() => {
+        const visible = centers.filter((c) =>
+          matches(
+            q,
+            c.branchName,
+            c.name,
+            c.thana,
+            c.city,
+            c.address,
+            c.contactPhone,
+            c.slug,
+            c.labChainId ? catalog.chainById(c.labChainId)?.name : "",
+          ),
+        );
+        const searching = q.trim().length > 0;
+        const groupOf = (chainId: string | null) =>
+          visible.filter((c) => (chainId ? c.labChainId === chainId : !c.labChainId));
+        const toggle = (key: string) =>
+          setCollapsed((s) => {
+            const next = new Set(s);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+          });
+
+        const branchRow = (c: DiagnosticCenter) => {
           const chain = c.labChainId ? catalog.chainById(c.labChainId) : undefined;
           const inheritedFee = c.sampleCollectionFeeOverride === null;
           return (
-            <div key={c.id} className="flex flex-wrap items-center gap-3 p-3">
+            <div key={c.id} className="flex flex-wrap items-center gap-3 p-3 pl-5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">
-                  {chain?.name ?? c.name} — {c.branchName}{" "}
+                  {c.branchName}{" "}
                   {!c.isActive && <span className="text-xs text-destructive">(hidden)</span>}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -756,8 +768,70 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
               </Button>
             </div>
           );
-        })}
-      </div>
+        };
+
+        const sections = [
+          ...chains.map((ch) => ({ key: ch.id, chain: ch as LabChain | null, branches: groupOf(ch.id) })),
+          { key: "__none", chain: null, branches: groupOf(null) },
+        ];
+
+        return (
+          <div className="space-y-4">
+            {searching && (
+              <ResultCount shown={visible.length} total={centers.length} noun="branches" />
+            )}
+            {sections.map(({ key, chain, branches }) => {
+              if (searching && !branches.length) return null;
+              if (!searching && !chain && !branches.length) return null;
+              const isCollapsed = collapsed.has(key);
+              return (
+                <div key={key} className="surface-card overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => toggle(key)}
+                    className="flex w-full flex-wrap items-center gap-3 bg-muted/40 p-3 text-left hover:bg-muted/70"
+                    aria-expanded={!isCollapsed}
+                  >
+                    {chain?.logoUrl && (
+                      <img src={chain.logoUrl} alt={`${chain.name} logo`} className="size-8 rounded object-contain" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold">
+                        {chain?.name ?? "No chain (independent branches)"}
+                        {chain && !chain.isActive && (
+                          <span className="ml-2 text-xs font-normal text-destructive">(chain hidden)</span>
+                        )}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {branches.length} branch{branches.length === 1 ? "" : "es"}
+                        {chain
+                          ? ` · default fee ৳${chain.defaultSampleCollectionFee}`
+                          : ""}
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      {isCollapsed ? "show" : "hide"}
+                    </span>
+                  </button>
+                  {!isCollapsed && (
+                    <div className="divide-y divide-border">
+                      {branches.map(branchRow)}
+                      {chain && !branches.length && (
+                        <p className="p-3 pl-5 text-xs text-muted-foreground">
+                          No branches yet for this chain.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {searching && !visible.length && (
+              <p className="surface-card p-4 text-sm text-muted-foreground">No branches match your search.</p>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
