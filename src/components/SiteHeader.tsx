@@ -95,7 +95,7 @@ export function SiteHeader() {
               </button>
             ))}
           </div>
-        </div>
+        </nav>
       </div>
 
       {showSearch && (
