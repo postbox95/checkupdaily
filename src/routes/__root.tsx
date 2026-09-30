@@ -150,6 +150,7 @@ function RootComponent() {
         </Suspense>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <Suspense fallback={null}>{!isAdmin && <SiteFooter />}</Suspense>
         <Suspense fallback={null}>{!isAdmin && <CartBar />}</Suspense>
         <Toaster position="top-center" richColors />
       </TooltipProvider>
