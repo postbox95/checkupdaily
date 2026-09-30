@@ -33,7 +33,15 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <div className="ml-auto flex items-center gap-2">
+        <nav className="ml-auto flex items-center gap-2" aria-label="Main">
+          <Link
+            to="/labs"
+            activeProps={{ className: "text-primary" }}
+            className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:block"
+          >
+            Test Labs
+          </Link>
+
           <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5" aria-label={t("location", lang)}>
