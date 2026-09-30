@@ -8,7 +8,6 @@ import {
   HowItWorks,
   PriceRangeHooks,
   StatBar,
-  TrustedBy,
   type RangeItem,
 } from "@/components/HomeSections";
 import { useCatalog } from "@/lib/catalog";
@@ -209,8 +208,6 @@ function Home() {
       </section>
 
       <AdSlot placement="home_bottom" className="mx-auto max-w-5xl px-4 pb-10" />
-
-      <TrustedBy names={chains.map((c) => c.name)} />
     </main>
   );
 }
