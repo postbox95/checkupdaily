@@ -557,10 +557,12 @@ function LabsPanel({ catalog }: { catalog: Catalog }) {
   const [editing, setEditing] = useState<DiagnosticCenter | null>(null);
   const [creating, setCreating] = useState(false);
   const [q, setQ] = useState("");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const save = useSaveRecord(() => { setEditing(null); setCreating(false); });
   const del = useDeleteRecord();
 
   const chainOptions = chains.map((c) => ({ value: c.id, label: c.name }));
+
 
   const initial = editing
     ? {
