@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, Suspense, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
