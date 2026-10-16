@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { MapPin, Stethoscope } from "lucide-react";
 import { useState } from "react";
 import { TestSearch } from "@/components/TestSearch";
+import { LabsMenu } from "@/components/LabsMenu";
 import { useCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
@@ -34,13 +35,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="ml-auto flex items-center gap-2" aria-label="Main">
-          <Link
-            to="/labs"
-            activeProps={{ className: "text-primary" }}
-            className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:block"
-          >
-            Test Labs
-          </Link>
+          <LabsMenu />
 
           <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>
