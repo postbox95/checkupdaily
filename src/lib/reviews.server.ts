@@ -185,7 +185,7 @@ function summarize(rows: { rating: number }[]): RatingSummary {
   return { average: Math.round(average * 10) / 10, total, breakdown };
 }
 
-export async function fetchChainProfile(slug: string, page: number): Promise<ChainProfile | null> {
+export async function fetchChainProfile(slug: string, page: number, branchId: string | null = null): Promise<ChainProfile | null> {
   const sb = publicClient();
   const { data: chain } = await sb
     .from("lab_chains")
@@ -195,7 +195,7 @@ export async function fetchChainProfile(slug: string, page: number): Promise<Cha
     .maybeSingle();
   if (!chain) return null;
 
-  const [{ data: branches }, { data: all }] = await Promise.all([
+  const [{ data: branches }, { data: all }, { count: chainPriceCount }] = await Promise.all([
     sb
       .from("diagnostic_centers")
       .select("*")
@@ -208,12 +208,25 @@ export async function fetchChainProfile(slug: string, page: number): Promise<Cha
       .eq("lab_chain_id", chain.id)
       .eq("status", "published")
       .order("created_at", { ascending: false }),
+    sb
+      .from("chain_test_prices")
+      .select("id", { count: "exact", head: true })
+      .eq("lab_chain_id", chain.id),
   ]);
+  const branchIds = (branches ?? []).map((b) => b.id);
+  let branchPriceCount = 0;
+  if (branchIds.length) {
+    const { count } = await sb
+      .from("test_prices")
+      .select("id", { count: "exact", head: true })
+      .in("diagnostic_center_id", branchIds);
+    branchPriceCount = count ?? 0;
+  }
 
   const centerLabel = new Map(
     (branches ?? []).map((b) => [b.id, (b.branch_name ?? "").trim() || b.thana]),
   );
-  const rows = all ?? [];
+  const rows = (all ?? []).filter((r) => !branchId || r.diagnostic_center_id === branchId);
   const start = (page - 1) * REVIEW_PAGE_SIZE;
   const reviews: PublicReview[] = rows.slice(start, start + REVIEW_PAGE_SIZE).map((r) => ({
     id: r.id,
@@ -252,6 +265,7 @@ export async function fetchChainProfile(slug: string, page: number): Promise<Cha
     areas: [...new Set((branches ?? []).map((b) => b.thana).filter(Boolean))],
     summary: summarize(rows),
     reviews,
+    testCount: (chainPriceCount ?? 0) + branchPriceCount,
     page,
     pageSize: REVIEW_PAGE_SIZE,
   };
