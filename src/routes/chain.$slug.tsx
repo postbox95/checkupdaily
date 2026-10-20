@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Phone, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Clock, Mail, MapPin, Navigation, Phone, Star, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,12 @@ import { seoBundleQueryOptions, globalOf, pickSeo } from "@/lib/seo.query";
 import { breadcrumbSchema, buildHead, faqSchema, localBusinessSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/chain/$slug")({
-  loader: async ({ params, context }) => {
+  validateSearch: (s: Record<string, unknown>): { branch?: string } =>
+    typeof s.branch === "string" && s.branch ? { branch: s.branch } : {},
+  loaderDeps: ({ search }) => ({ branch: search.branch ?? null }),
+  loader: async ({ params, context, deps }) => {
     const [data, bundle] = await Promise.all([
-      context.queryClient.ensureQueryData(chainProfileQuery(params.slug, 1)),
+      context.queryClient.ensureQueryData(chainProfileQuery(params.slug, 1, deps.branch)),
       context.queryClient.ensureQueryData(seoBundleQueryOptions),
     ]);
     if (!data) throw notFound();
@@ -73,13 +76,17 @@ export const Route = createFileRoute("/chain/$slug")({
 
 function ChainPage() {
   const { slug } = Route.useParams();
+  const { branch: branchId = null } = Route.useSearch();
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
-  const { data, isFetching } = useQuery(chainProfileQuery(slug, page));
+  const { data, isFetching } = useQuery(chainProfileQuery(slug, page, branchId));
   const { seo } = Route.useLoaderData();
 
   if (!data) return <main className="mx-auto max-w-3xl px-4 py-16" />;
   const { chain, branches, areas, summary, reviews } = data;
+  if (data.testCount === 0 && !chain.pros.length && !chain.cons.length)
+    return <PricesWithheld data={data} />;
+  const activeBranch = branches.find((b) => b.id === branchId) ?? null;
   const pages = Math.max(1, Math.ceil(summary.total / data.pageSize));
 
   return (
@@ -106,6 +113,24 @@ function ChainPage() {
           )}
         </div>
       </header>
+
+      {activeBranch && (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <MapPin className="size-4 text-primary" aria-hidden />
+          <span>
+            Showing reviews for <strong>{activeBranch.branchName || activeBranch.name}</strong> branch
+          </span>
+          <Link
+            to="/chain/$slug"
+            params={{ slug }}
+            search={{}}
+            onClick={() => setPage(1)}
+            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+          >
+            <X className="size-3" aria-hidden /> All branches
+          </Link>
+        </div>
+      )}
 
       {seo?.intro && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{seo.intro}</p>}
 
@@ -175,7 +200,15 @@ function ChainPage() {
           {branches.map((b) => (
             <li key={b.id} className="surface-card flex flex-wrap items-center gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">{b.branchName || b.name}</p>
+                <Link
+                  to="/chain/$slug"
+                  params={{ slug }}
+                  search={{ branch: b.id }}
+                  onClick={() => setPage(1)}
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  {b.branchName || b.name}
+                </Link>
                 <p className="text-xs text-muted-foreground">
                   {b.thana}
                   {b.city ? `, ${b.city}` : ""} · {b.address}
@@ -199,6 +232,15 @@ function ChainPage() {
               )}
               <Button size="sm" variant="outline" asChild>
                 <Link to="/">Browse test prices</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}`}
+                >
+                  <Navigation className="size-3.5" aria-hidden /> Visit the Branch
+                </a>
               </Button>
             </li>
           ))}
@@ -275,6 +317,88 @@ function ChainPage() {
       )}
 
       <AdSlot placement="chain_bottom" className="mt-5" />
+    </main>
+  );
+}
+
+function PricesWithheld({ data }: { data: ChainProfile }) {
+  const { chain, branches, areas } = data;
+  return (
+    <main className="mx-auto max-w-3xl px-4 pb-24 pt-6">
+      <section className="surface-card overflow-hidden">
+        <div className="bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card">
+              {chain.logoUrl ? (
+                <img src={chain.logoUrl} alt={`${chain.name} logo`} className="size-full object-contain" />
+              ) : (
+                <span className="text-lg font-bold text-primary">{chain.name.slice(0, 2).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-extrabold">{chain.name}</p>
+              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin className="size-3.5" aria-hidden />
+                {branches.length} branch{branches.length === 1 ? "" : "es"} · {areas.length ? areas.join(", ") : "Dhaka"}
+              </p>
+            </div>
+          </div>
+          <h1 className="mt-6 text-2xl font-extrabold leading-tight sm:text-3xl">
+            The lab denied sharing their test prices.
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            If you're from the lab and want to update the page, please contact us at{" "}
+            <a href="mailto:request@checkup.com" className="font-semibold text-primary hover:underline">
+              request@checkup.com
+            </a>
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button asChild>
+              <a href="mailto:request@checkup.com">
+                <Mail className="size-4" aria-hidden /> Contact us
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/">Compare other labs</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {branches.length > 0 && (
+        <section className="mt-6" aria-label="Branches">
+          <h2 className="text-sm font-bold">Branch locations</h2>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {branches.map((b) => (
+              <li key={b.id} className="surface-card p-4">
+                <p className="text-sm font-semibold">{b.branchName || b.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {b.thana}
+                  {b.city ? `, ${b.city}` : ""} · {b.address}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-3 text-xs">
+                  <a
+                    className="inline-flex items-center gap-1 underline decoration-dotted"
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${b.latitude},${b.longitude}`}
+                  >
+                    <Navigation className="size-3" aria-hidden /> Directions
+                  </a>
+                  {b.contactPhone && (
+                    <a className="inline-flex items-center gap-1 underline decoration-dotted" href={`tel:${b.contactPhone}`}>
+                      <Phone className="size-3" aria-hidden /> {b.contactPhone}
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <p className="mt-6 flex items-center gap-1 text-xs text-muted-foreground">
+        <Clock className="size-3" aria-hidden /> We'll publish prices as soon as the lab shares them.
+      </p>
     </main>
   );
 }
