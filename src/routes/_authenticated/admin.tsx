@@ -992,8 +992,8 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <label className="flex items-center gap-2 font-semibold">
             <Checkbox
-              checked={allSelected}
-              onCheckedChange={(v) => setSelected(v ? catalog.tests.map((t) => t.id) : [])}
+              checked={allSelected || (visibleTests.length > 0 && visibleTests.every((t) => selected.includes(t.id)))}
+              onCheckedChange={(v) => setSelected(v ? visibleTests.map((t) => t.id) : [])}
             />
             {selected.length} selected
           </label>

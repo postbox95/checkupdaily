@@ -337,62 +337,79 @@ export const bulkPriceAction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    if (!data.testIds.length) return { affected: 0 };
+    const ids = Array.from(new Set(data.testIds));
+    if (!ids.length) return { affected: 0 };
 
-    const table = data.scope === "chain" ? "chain_test_prices" : "test_prices";
-    const keyCol = data.scope === "chain" ? "lab_chain_id" : "diagnostic_center_id";
-
+    const isChain = data.scope === "chain";
+    const table = isChain ? "chain_test_prices" : "test_prices";
+    const keyCol = isChain ? "lab_chain_id" : "diagnostic_center_id";
+    const conflict = isChain ? "lab_chain_id,medical_test_id" : "medical_test_id,diagnostic_center_id";
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    const tbl = () => context.supabase.from(table) as any;
-    const base = () => tbl().eq(keyCol, data.targetId);
+    const sb = context.supabase as any;
+    // Large .in() lists overflow the request URL, so work in chunks.
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += 150) chunks.push(ids.slice(i, i + 150));
 
     if (data.action === "delete") {
-      const { error } = await tbl()
-        .delete()
-        .eq(keyCol, data.targetId)
-        .in("medical_test_id", data.testIds);
-
-      if (error) throw new Error(error.message);
-      return { affected: data.testIds.length };
+      let affected = 0;
+      for (const c of chunks) {
+        const { data: del, error } = await sb.from(table).delete()
+          .eq(keyCol, data.targetId).in("medical_test_id", c).select("id");
+        if (error) throw new Error(error.message);
+        affected += del?.length ?? 0;
+      }
+      return { affected };
     }
 
-    if (data.action === "availability") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (context.supabase.from(table) as any)
-        .update({ is_available: Boolean(data.isAvailable) })
-        .eq(keyCol, data.targetId)
-        .in("medical_test_id", data.testIds);
+    // Load current rows; for a branch, fall back to the chain template so that
+    // inherited prices become branch overrides instead of being silently skipped.
+    type Row = { medical_test_id: string; price: number; discount_type: string; discount_value: number; notes: string | null; is_available: boolean };
+    const rows = new Map<string, Row>();
+    let chainId: string | null = null;
+    if (!isChain) {
+      const { data: c } = await sb.from("diagnostic_centers").select("lab_chain_id").eq("id", data.targetId).maybeSingle();
+      chainId = c?.lab_chain_id ?? null;
+    }
+    const cols = "medical_test_id, price, discount_type, discount_value, notes, is_available";
+    for (const c of chunks) {
+      if (chainId) {
+        const { data: tmpl, error } = await sb.from("chain_test_prices").select(cols)
+          .eq("lab_chain_id", chainId).in("medical_test_id", c);
+        if (error) throw new Error(error.message);
+        for (const r of tmpl ?? []) rows.set(r.medical_test_id, r);
+      }
+      const { data: own, error } = await sb.from(table).select(cols)
+        .eq(keyCol, data.targetId).in("medical_test_id", c);
       if (error) throw new Error(error.message);
-      return { affected: data.testIds.length };
+      for (const r of own ?? []) rows.set(r.medical_test_id, r);
     }
 
-    if (data.action === "discount") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (context.supabase.from(table) as any)
-        .update({
-          discount_type: data.discountType ?? "none",
-          discount_value: data.discountValue ?? 0,
-        })
-        .eq(keyCol, data.targetId)
-        .in("medical_test_id", data.testIds);
-      if (error) throw new Error(error.message);
-      return { affected: data.testIds.length };
-    }
-
-    // adjust base price by a percentage
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: rows, error } = await (base() as any)
-      .select("id, price")
-      .in("medical_test_id", data.testIds);
-    if (error) throw new Error(error.message);
     const factor = 1 + (data.percent ?? 0) / 100;
-    for (const r of rows ?? []) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (context.supabase.from(table) as any)
-        .update({ price: Math.max(0, Math.round((r.price * factor) / 10) * 10) })
-        .eq("id", r.id);
+    const out = [...rows.values()].map((r) => {
+      const next: any = {
+        [keyCol]: data.targetId,
+        medical_test_id: r.medical_test_id,
+        price: r.price,
+        discount_type: r.discount_type,
+        discount_value: r.discount_value,
+        notes: r.notes,
+        is_available: r.is_available,
+      };
+      if (data.action === "availability") next.is_available = Boolean(data.isAvailable);
+      if (data.action === "discount") {
+        next.discount_type = data.discountType ?? "none";
+        next.discount_value = next.discount_type === "none" ? 0 : data.discountValue ?? 0;
+      }
+      if (data.action === "adjust") next.price = Math.max(0, Math.round((r.price * factor) / 10) * 10);
+      return next;
+    });
+
+    for (let i = 0; i < out.length; i += 200) {
+      const { error } = await sb.from(table).upsert(out.slice(i, i + 200), { onConflict: conflict });
+      if (error) throw new Error(error.message);
     }
-    return { affected: rows?.length ?? 0 };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    return { affected: out.length };
   });
 
 /** Legacy percent adjust kept for the simple toolbar. */
