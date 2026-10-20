@@ -9,10 +9,10 @@ import {
 } from "./reviews.functions";
 import type { AdminReview, ReviewStatus } from "./reviews.types";
 
-export const chainProfileQuery = (slug: string, page: number) =>
+export const chainProfileQuery = (slug: string, page: number, branch: string | null = null) =>
   queryOptions({
-    queryKey: ["chain", slug, page],
-    queryFn: () => getChainProfile({ data: { slug, page } }),
+    queryKey: ["chain", slug, page, branch],
+    queryFn: () => getChainProfile({ data: { slug, page, branch } }),
   });
 
 export const adminReviewsQuery = queryOptions({

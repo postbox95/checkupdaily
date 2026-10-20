@@ -45,6 +45,7 @@ export interface ChainProfile {
   areas: string[];
   summary: RatingSummary;
   reviews: PublicReview[];
+  testCount: number;
   page: number;
   pageSize: number;
 }

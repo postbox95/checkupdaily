@@ -3,10 +3,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { ReviewStatus } from "./reviews.types";
 
 export const getChainProfile = createServerFn({ method: "GET" })
-  .inputValidator((d: { slug: string; page?: number }) => d)
+  .inputValidator((d: { slug: string; page?: number; branch?: string | null }) => d)
   .handler(async ({ data }) => {
     const { fetchChainProfile } = await import("./reviews.server");
-    return fetchChainProfile(data.slug, Math.max(1, Math.floor(data.page ?? 1)));
+    return fetchChainProfile(data.slug, Math.max(1, Math.floor(data.page ?? 1)), data.branch || null);
   });
 
 export const requestReviewOtp = createServerFn({ method: "POST" })
