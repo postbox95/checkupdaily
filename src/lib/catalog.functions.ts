@@ -128,15 +128,28 @@ const mapThana = (r: any): Thana => ({
 });
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+/** The database returns at most 1000 rows per request, so page through everything. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchAll(make: () => any): Promise<{ data: any[] }> {
+  const out: unknown[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await make().range(from, from + 999);
+    if (error) throw new Error(error.message);
+    out.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
+  return { data: out };
+}
+
 async function loadCatalog(includeInactive: boolean): Promise<Catalog> {
   const sb = publicClient();
   const [chains, centers, tests, prices, chainPrices, thanas, settings] = await Promise.all([
-    sb.from("lab_chains").select("*").order("sort_order"),
-    sb.from("diagnostic_centers").select("*").order("sort_order"),
-    sb.from("medical_tests").select("*").order("sort_order"),
-    sb.from("test_prices").select("*"),
-    sb.from("chain_test_prices").select("*"),
-    sb.from("thanas").select("*").order("sort_order"),
+    fetchAll(() => sb.from("lab_chains").select("*").order("sort_order").order("id")),
+    fetchAll(() => sb.from("diagnostic_centers").select("*").order("sort_order").order("id")),
+    fetchAll(() => sb.from("medical_tests").select("*").order("sort_order").order("id")),
+    fetchAll(() => sb.from("test_prices").select("*").order("id")),
+    fetchAll(() => sb.from("chain_test_prices").select("*").order("id")),
+    fetchAll(() => sb.from("thanas").select("*").order("sort_order").order("id")),
     sb.from("site_settings").select("*").eq("key", "general").maybeSingle(),
   ]);
 
@@ -382,6 +395,13 @@ export const bulkPriceAction = createServerFn({ method: "POST" })
         .eq(keyCol, data.targetId).in("medical_test_id", c);
       if (error) throw new Error(error.message);
       for (const r of own ?? []) rows.set(r.medical_test_id, r);
+    }
+
+    // "Mark offered/not offered" should also work for tests with no price yet.
+    if (data.action === "availability") {
+      for (const id of ids)
+        if (!rows.has(id))
+          rows.set(id, { medical_test_id: id, price: 0, discount_type: "none", discount_value: 0, notes: null, is_available: false });
     }
 
     const factor = 1 + (data.percent ?? 0) / 100;
