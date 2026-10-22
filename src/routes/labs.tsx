@@ -39,7 +39,7 @@ function LabsPage() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {chains.map((chain) => {
           const branches = centers.filter((c) => c.labChainId === chain.id);
-          const areas = [...new Set(branches.map((b) => b.thana))].slice(0, 4);
+          const areas = [...new Set(branches.map((b) => b.thana))].sort((a, b) => a.localeCompare(b)).slice(0, 4);
           return (
             <Link
               key={chain.id}

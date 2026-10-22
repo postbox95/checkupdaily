@@ -50,8 +50,10 @@ export function SiteHeader() {
               <DrawerHeader>
                 <DrawerTitle>Select your area in Dhaka</DrawerTitle>
               </DrawerHeader>
-              <div className="grid grid-cols-2 gap-2 px-4 pb-8 sm:grid-cols-3">
-                {thanas.map(({ name: area }) => (
+              <div className="grid max-h-[60vh] grid-cols-2 gap-2 overflow-y-auto px-4 pb-8 sm:grid-cols-3">
+                {[...thanas]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map(({ name: area }) => (
                   <button
                     key={area}
                     onClick={() => {
