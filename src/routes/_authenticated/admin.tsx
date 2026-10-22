@@ -36,6 +36,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminReviews, useModerateReview } from "@/lib/reviews";
 import { REVIEW_STATUSES, type ReviewStatus } from "@/lib/reviews.types";
@@ -1150,7 +1157,13 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState({ name: "", latitude: 0, longitude: 0 });
   const [q, setQ] = useState("");
-  const visible = thanas.filter((t) => matches(q, t.name));
+  const [sort, setSort] = useState<"default" | "az" | "za">("az");
+  const visible = useMemo(() => {
+    const list = thanas.filter((t) => matches(q, t.name));
+    if (sort === "az") return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === "za") return [...list].sort((a, b) => b.name.localeCompare(a.name));
+    return list;
+  }, [thanas, q, sort]);
 
   const startEdit = (t: Thana) => {
     setEditId(t.id);
@@ -1185,6 +1198,16 @@ function AreasPanel({ thanas }: { thanas: Thana[] }) {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <AdminSearch value={q} onChange={setQ} placeholder="Search areas…" />
+        <Select value={sort} onValueChange={(v) => setSort(v as typeof sort)}>
+          <SelectTrigger className="h-9 w-40" aria-label="Sort areas">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="az">A → Z</SelectItem>
+            <SelectItem value="za">Z → A</SelectItem>
+            <SelectItem value="default">Default order</SelectItem>
+          </SelectContent>
+        </Select>
         <ResultCount shown={visible.length} total={thanas.length} noun="areas" />
       </div>
       <div className="surface-card divide-y divide-border">
