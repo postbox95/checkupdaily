@@ -262,7 +262,9 @@ export async function fetchChainProfile(slug: string, page: number, branchId: st
       latitude: b.latitude,
       longitude: b.longitude,
     })),
-    areas: [...new Set((branches ?? []).map((b) => b.thana).filter(Boolean))],
+    areas: [...new Set((branches ?? []).map((b) => b.thana).filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b),
+    ),
     summary: summarize(rows),
     reviews,
     testCount: (chainPriceCount ?? 0) + branchPriceCount,
