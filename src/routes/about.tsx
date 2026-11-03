@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BadgeCheck,
@@ -19,9 +20,9 @@ export const Route = createFileRoute("/about")({
   head: ({ loaderData }) => {
     const global = globalOf(loaderData);
     const bundle = loaderData ?? { records: {} };
-    const title = "About Us — Why We Built MyTestReport";
+    const title = `About Us — Why We Built ${global.siteName}`;
     const description =
-      "Meet Ummul Wara Saidi, the pharmacist who founded MyTestReport after years of not being able to compare diagnostic test prices in Dhaka. Learn how we collect prices and why patients trust us.";
+      `Meet Ummul Wara Saidi, the pharmacist who founded ${global.siteName} after years of not being able to compare diagnostic test prices in Dhaka. Learn how we collect prices and why patients trust us.`;
     return buildHead({
       global,
       seo: pickSeo(bundle, "page", "about", global.defaultLang),
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/about")({
         {
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          name: "About MyTestReport",
+          name: `About ${global.siteName}`,
           url: `${global.siteUrl}/about`,
           mainEntity: {
             "@type": "Organization",
@@ -96,6 +97,8 @@ const WHAT_WE_DO = [
 
 function AboutPage() {
   const { chains, centers, tests } = useCatalog();
+  const { data: seoBundle } = useSuspenseQuery(seoBundleQueryOptions);
+  const global = globalOf(seoBundle);
   const stats = {
     labs: chains.length,
     branches: centers.length,
@@ -115,7 +118,7 @@ function AboutPage() {
               No patient should have to pay blind.
             </h1>
             <p className="mt-3 max-w-xl text-sm/relaxed text-muted-foreground sm:text-base/relaxed">
-              MyTestReport shows the real price of diagnostic tests across Dhaka — base fee, needle,
+              {global.siteName} shows the real price of diagnostic tests across Dhaka — base fee, needle,
               tube and registration charges included — so you can compare labs, choose with
               confidence and never get surprised at the counter.
             </p>
@@ -192,7 +195,7 @@ function AboutPage() {
             realised how impossible it was for everyone else. That frustration became an idea:{" "}
             <strong>list every lab, publish every price, and let patients compare for
             themselves.</strong>{" "}
-            That idea is MyTestReport.
+            That idea is {global.siteName}.
           </p>
           <blockquote className="rounded-2xl border-l-4 border-primary bg-accent/40 px-5 py-4 text-sm/relaxed font-medium italic sm:text-base/relaxed">
             "I kept thinking: why should finding the price of a blood test be harder than the test
