@@ -37,6 +37,18 @@ export function SiteHeader() {
         <nav className="ml-auto flex items-center gap-2" aria-label="Main">
           <LabsMenu />
 
+          <Link
+            to="/about"
+            className={`hidden rounded-lg px-2.5 py-1.5 text-sm font-semibold transition-colors sm:inline-flex ${
+              pathname === "/about"
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            About
+          </Link>
+
+
           <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5" aria-label={t("location", lang)}>
