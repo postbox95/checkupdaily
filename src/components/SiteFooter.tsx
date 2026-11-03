@@ -61,6 +61,15 @@ export function SiteFooter() {
                 Compare prices
               </Link>
             </li>
+            <li>
+              <Link
+                to="/about"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                About us
+              </Link>
+            </li>
+
           </ul>
         </nav>
 
