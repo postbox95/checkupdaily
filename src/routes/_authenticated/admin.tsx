@@ -168,6 +168,11 @@ function AdminShell() {
         <TabsContent value="settings">
           <SettingsPanel settings={{ ...catalog.settings }} />
         </TabsContent>
+        <TabsContent value="about">
+          <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading About page content…</p>}>
+            <AboutPanel />
+          </Suspense>
+        </TabsContent>
         <TabsContent value="seo">
           <SeoPanel
             tests={catalog.tests}
