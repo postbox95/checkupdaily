@@ -29,6 +29,7 @@ import {
 import { DAY_NAMES, branchOpenStatus } from "@/lib/hours";
 import { BannersPanel } from "@/components/admin/BannersPanel";
 import { SeoPanel } from "@/components/admin/SeoPanel";
+import { AboutPanel } from "@/components/admin/AboutPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -138,6 +139,7 @@ function AdminShell() {
           <TabsTrigger value="banners">Ad banners</TabsTrigger>
           <TabsTrigger value="areas">Areas</TabsTrigger>
           <TabsTrigger value="settings">Site settings</TabsTrigger>
+          <TabsTrigger value="about">About page</TabsTrigger>
           <TabsTrigger value="seo">SEO settings</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
@@ -165,6 +167,11 @@ function AdminShell() {
         </TabsContent>
         <TabsContent value="settings">
           <SettingsPanel settings={{ ...catalog.settings }} />
+        </TabsContent>
+        <TabsContent value="about">
+          <Suspense fallback={<p className="p-6 text-sm text-muted-foreground">Loading About page content…</p>}>
+            <AboutPanel />
+          </Suspense>
         </TabsContent>
         <TabsContent value="seo">
           <SeoPanel
