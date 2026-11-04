@@ -22,9 +22,8 @@ export const Route = createFileRoute("/about")({
       context.queryClient.ensureQueryData(aboutContentQuery),
     ]),
   head: ({ loaderData }) => {
-    const [bundle] = loaderData ?? [];
-    const global = globalOf(bundle);
-    const about = (loaderData?.[1] as AboutContent | undefined) ?? null;
+    const bundle = loaderData?.[0] ?? { records: {} };
+    const about = loaderData?.[1] as AboutContent | undefined;
     const founder = about?.founderName ?? "Ummul Wara Saidi";
     const title = `About Us — Why We Built ${global.siteName}`;
     const description =

@@ -5,6 +5,7 @@ import {
   saveAboutContent,
   uploadAboutImage,
 } from "./about.functions";
+import type { AboutContent } from "./about.types";
 
 export type { AboutContent, AboutItem } from "./about.types";
 export { DEFAULT_ABOUT, parseStory } from "./about.types";
