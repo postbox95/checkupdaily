@@ -34,13 +34,45 @@ export const getAboutContent = createServerFn({ method: "GET" }).handler(async (
 
 export const saveAboutContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .inputValidator((d: { value: AboutContent }) => d)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  .handler(async ({ context }: any) => {
-    const { data, error } = await context.supabase.rpc("has_role", {
+  .handler(async ({ data, context }: any) => {
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
       _role: "admin",
     });
-    if (error || !data) throw new Error("Forbidden: admin role required");
-    const value = (arguments_0 ?? null) as never; // placeholder replaced below
-    return { value };
+    if (error || !isAdmin) throw new Error("Forbidden: admin role required");
+    // The settings write policy is admin-only, so the user-scoped client is enough.
+    const { error: upErr } = await context.supabase
+      .from("site_settings")
+      .upsert(
+        { key: ABOUT_SETTINGS_KEY, value: data.value },
+        { onConflict: "key" },
+      );
+    if (upErr) throw new Error(upErr.message);
+    return { ok: true };
+  });
+
+/** Uploads the founder (or any About) image (base64) and returns its URL. */
+export const uploadAboutImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { fileName: string; contentType: string; dataBase64: string }) => d)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  .handler(async ({ data, context }: any) => {
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (error || !isAdmin) throw new Error("Forbidden: admin role required");
+    const bytes = Buffer.from(data.dataBase64, "base64");
+    if (bytes.byteLength > 5_000_000) throw new Error("Image is larger than 5 MB.");
+    const safe = String(data.fileName).replace(/[^a-zA-Z0-9._-]/g, "-").slice(-60);
+    const path = `content/${Date.now()}-${safe}`;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("ads")
+      .upload(path, bytes, { contentType: data.contentType || "image/png", upsert: true });
+    if (upErr) throw new Error(upErr.message);
+    // Served publicly through the existing image proxy route.
+    return { url: `/api/public/ad-image/${path}` };
   });
