@@ -139,6 +139,7 @@ function AdminShell() {
           <TabsTrigger value="banners">Ad banners</TabsTrigger>
           <TabsTrigger value="areas">Areas</TabsTrigger>
           <TabsTrigger value="settings">Site settings</TabsTrigger>
+          <TabsTrigger value="about">About page</TabsTrigger>
           <TabsTrigger value="seo">SEO settings</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
