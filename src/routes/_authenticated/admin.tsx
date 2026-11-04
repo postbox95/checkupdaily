@@ -29,6 +29,7 @@ import {
 import { DAY_NAMES, branchOpenStatus } from "@/lib/hours";
 import { BannersPanel } from "@/components/admin/BannersPanel";
 import { SeoPanel } from "@/components/admin/SeoPanel";
+import { AboutPanel } from "@/components/admin/AboutPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
