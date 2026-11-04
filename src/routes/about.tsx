@@ -24,6 +24,7 @@ export const Route = createFileRoute("/about")({
   head: ({ loaderData }) => {
     const bundle = loaderData?.[0] ?? { records: {} };
     const about = loaderData?.[1] as AboutContent | undefined;
+    const global = globalOf(bundle);
     const founder = about?.founderName ?? "Ummul Wara Saidi";
     const title = `About Us — Why We Built ${global.siteName}`;
     const description =
