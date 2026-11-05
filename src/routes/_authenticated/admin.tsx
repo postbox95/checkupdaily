@@ -51,11 +51,11 @@ import { REVIEW_STATUSES, type ReviewStatus } from "@/lib/reviews.types";
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Content Manager — MyTestReport Admin" },
+      { title: "Content Manager — CheckUp Daily Admin" },
       { name: "description", content: "Manage chains, tests, labs, prices, areas and settings." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Content Manager — MyTestReport Admin" },
-      { property: "og:description", content: "Admin CMS for the MyTestReport catalogue." },
+      { property: "og:title", content: "Content Manager — CheckUp Daily Admin" },
+      { property: "og:description", content: "Admin CMS for the CheckUp Daily catalogue." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

@@ -34,19 +34,19 @@ export interface AboutContent {
 }
 
 export const DEFAULT_ABOUT: AboutContent = {
-  badgeLabel: "About MyTestReport",
+  badgeLabel: "About CheckUp Daily",
   heading: "No patient should have to pay blind.",
   intro:
-    "MyTestReport shows the real price of diagnostic tests across Dhaka — base fee, needle, tube and registration charges included — so you can compare labs, choose with confidence and never get surprised at the counter.",
+    "CheckUp Daily shows the real price of diagnostic tests across Dhaka — base fee, needle, tube and registration charges included — so you can compare labs, choose with confidence and never get surprised at the counter.",
   founderName: "Ummul Wara Saidi",
   founderTitle: "Founder · Pharmacist, North South University",
   founderImageUrl: founderAsset.url,
-  founderImageAlt: "Ummul Wara Saidi, founder of MyTestReport",
+  founderImageAlt: "Ummul Wara Saidi, founder of CheckUp Daily",
   storyHeading: "Our story — it started at the lab counter",
   story: [
     "**Ummul Wara Saidi** is an academic A Grade Pharmacist who graduated from North South University. Like most people in Dhaka, her life regularly brings her to a diagnostic lab — for herself, and for the people she cares about.",
     "She had to frequently look out for test labs and diagnostics — appearing in person or calling around just to know what a test costs. There was no way to compare whether a better yet cheaper choice existed across town. And the billed amount was always more than the price she was quoted — a little for the needle, a little for the tube, a little for registration. She was paying for the same test at wildly different prices, and she had no way of knowing.",
-    "If this was hard for a pharmacist — someone trained in exactly these tests — she realised how impossible it was for everyone else. That frustration became an idea: **list every lab, publish every price, and let patients compare for themselves.** That idea is MyTestReport.",
+    "If this was hard for a pharmacist — someone trained in exactly these tests — she realised how impossible it was for everyone else. That frustration became an idea: **list every lab, publish every price, and let patients compare for themselves.** That idea is CheckUp Daily.",
   ],
   quote:
     "I kept thinking: why should finding the price of a blood test be harder than the test itself? Patients deserve to see the numbers before they walk in.",
@@ -85,7 +85,7 @@ export const DEFAULT_ABOUT: AboutContent = {
   ],
   ctaHeading: "Are you a diagnostic centre?",
   ctaBody:
-    "If your lab's rates have changed, or you'd like your price list published or updated on MyTestReport, we'd love to hear from you — accurate data helps your patients and ours.",
+    "If your lab's rates have changed, or you'd like your price list published or updated on CheckUp Daily, we'd love to hear from you — accurate data helps your patients and ours.",
   ctaEmail: "request@checkup.com",
 };
 

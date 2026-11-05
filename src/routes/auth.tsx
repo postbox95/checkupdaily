@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Admin Sign In — MyTestReport" },
-      { name: "description", content: "Sign in to manage tests, labs and prices for MyTestReport." },
+      { title: "Admin Sign In — CheckUp Daily" },
+      { name: "description", content: "Sign in to manage tests, labs and prices for CheckUp Daily." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin Sign In — MyTestReport" },
-      { property: "og:description", content: "Content management sign in for MyTestReport." },
+      { property: "og:title", content: "Admin Sign In — CheckUp Daily" },
+      { property: "og:description", content: "Content management sign in for CheckUp Daily." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

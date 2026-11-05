@@ -86,13 +86,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MyTestReport — Diagnostic Test Price Comparison in Dhaka" },
+      { title: "CheckUp Daily — Diagnostic Test Price Comparison in Dhaka" },
       {
         name: "description",
         content:
           "Compare diagnostic test prices across Dhaka labs, including needle and registration charges.",
       },
-      { property: "og:title", content: "MyTestReport" },
+      { property: "og:title", content: "CheckUp Daily" },
       {
         property: "og:description",
         content: "Compare diagnostic test prices across Dhaka labs.",

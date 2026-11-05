@@ -115,7 +115,7 @@ export function SiteFooter() {
       <div className="border-t border-border/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {year} {settings.siteName || "MyTestReport"}. Prices are collected from published lab
+            © {year} {settings.siteName || "CheckUp Daily"}. Prices are collected from published lab
             rate cards — always confirm with the lab before your visit.
           </p>
           <p>Made for Dhaka patients 🇧🇩</p>

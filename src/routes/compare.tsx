@@ -24,7 +24,7 @@ export const Route = createFileRoute("/compare")({
       global,
       seo: pickSeo(bundle, "page", "compare", global.defaultLang),
       path: "/compare",
-      fallbackTitle: "Multi-Lab Prescription Comparison — MyTestReport",
+      fallbackTitle: "Multi-Lab Prescription Comparison — CheckUp Daily",
       fallbackDescription: "Add your whole prescription and compare the total bill across Dhaka diagnostic centres, including test-specific and registration charges.",
       forceNoindex: true,
     });
@@ -88,7 +88,7 @@ function ComparePage() {
   const best = results[0];
 
   const summaryText = [
-    `MyTestReport — prescription comparison (${cart.length} tests)`,
+    `CheckUp Daily — prescription comparison (${cart.length} tests)`,
     ...cart.map((id) => `• ${testById(id)?.canonicalName}`),
     "",
     `Lowest total: ${best.center.name}, ${best.center.branchName} — ${bdt(best.total)} (${best.covered}/${cart.length} tests)`,

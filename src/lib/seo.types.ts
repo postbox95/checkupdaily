@@ -60,13 +60,13 @@ export interface GlobalSeo {
 }
 
 export const DEFAULT_GLOBAL_SEO: GlobalSeo = {
-  siteName: "MyTestReport",
+  siteName: "CheckUp Daily",
   siteUrl: "https://med-compare-bd.lovable.app",
-  defaultTitle: "Diagnostic Test Prices in Bangladesh | MyTestReport",
+  defaultTitle: "Diagnostic Test Prices in Bangladesh | CheckUp Daily",
   defaultDescription:
     "Compare diagnostic test prices across Bangladesh. Find lab-wise test costs, collection charges, preparation details and nearby diagnostic centres.",
   defaultCanonical: "",
-  ogTitle: "Diagnostic Test Prices in Bangladesh | MyTestReport",
+  ogTitle: "Diagnostic Test Prices in Bangladesh | CheckUp Daily",
   ogDescription:
     "Compare lab-wise diagnostic test prices, collection charges and preparation details across Bangladesh.",
   ogImage: "",
