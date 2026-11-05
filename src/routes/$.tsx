@@ -14,11 +14,11 @@ export const Route = createFileRoute("/$")({
   },
   head: () => ({
     meta: [
-      { title: "Page not found — MyTestReport" },
-      { name: "description", content: "The requested MyTestReport page could not be found." },
+      { title: "Page not found — CheckUp Daily" },
+      { name: "description", content: "The requested CheckUp Daily page could not be found." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Page not found — MyTestReport" },
-      { property: "og:description", content: "The requested MyTestReport page could not be found." },
+      { property: "og:title", content: "Page not found — CheckUp Daily" },
+      { property: "og:description", content: "The requested CheckUp Daily page could not be found." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

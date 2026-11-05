@@ -7,11 +7,11 @@ export const Route = createFileRoute("/test/$code")({
   },
   head: () => ({
     meta: [
-      { title: "Test page moved — MyTestReport" },
-      { name: "description", content: "This diagnostic test page has moved to its current MyTestReport address." },
+      { title: "Test page moved — CheckUp Daily" },
+      { name: "description", content: "This diagnostic test page has moved to its current CheckUp Daily address." },
       { name: "robots", content: "noindex, follow" },
-      { property: "og:title", content: "Test page moved — MyTestReport" },
-      { property: "og:description", content: "This diagnostic test page has moved to its current MyTestReport address." },
+      { property: "og:title", content: "Test page moved — CheckUp Daily" },
+      { property: "og:description", content: "This diagnostic test page has moved to its current CheckUp Daily address." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
