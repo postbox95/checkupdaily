@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 export type Lang = "en" | "bn";
 
@@ -27,7 +27,25 @@ export const useAppStore = create<AppState>()(
       removeFromCart: (id) => set((s) => ({ cart: s.cart.filter((x) => x !== id) })),
       clearCart: () => set({ cart: [] }),
     }),
-    { name: "niramoy-prices" },
+    {
+      name: "checkup-daily",
+      storage: createJSONStorage(() => ({
+        getItem: (name) => {
+          if (typeof window === "undefined") return null;
+          const current = window.localStorage.getItem(name);
+          if (current) return current;
+          const legacy = window.localStorage.getItem("niramoy-prices");
+          if (legacy) window.localStorage.setItem(name, legacy);
+          return legacy;
+        },
+        setItem: (name, value) => {
+          if (typeof window !== "undefined") window.localStorage.setItem(name, value);
+        },
+        removeItem: (name) => {
+          if (typeof window !== "undefined") window.localStorage.removeItem(name);
+        },
+      })),
+    },
   ),
 );
 
