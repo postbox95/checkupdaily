@@ -22,13 +22,13 @@ describe("test pricing rules", () => {
     expect(saved.consumable_fee).toBe(0);
   });
 
-  test("does not change unrelated test fields", () => {
+  test("always turns off government-rate status", () => {
     const saved = normalizeMedicalTestPricing({
       category: "PATHOLOGY",
       consumable_fee: 0,
       is_government_rate: true,
     });
 
-    expect(saved.is_government_rate).toBe(true);
+    expect(saved.is_government_rate).toBe(false);
   });
 });

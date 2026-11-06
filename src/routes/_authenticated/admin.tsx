@@ -496,8 +496,7 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
             { name: "fasting_required", label: "Fasting required", type: "boolean" },
             { name: "fasting_hours", label: "Fasting hours", type: "number" },
             { name: "report_delivery_hrs", label: "Report delivery (hrs)", type: "number" },
-            { name: "consumable_fee", label: "Needle / tube charge for this test (0 for MRI, X-ray…)", type: "number" },
-            { name: "is_government_rate", label: "Government rate (never discounted)", type: "boolean" },
+            { name: "consumable_fee", label: "Needle / tools charge (pathology and blood tests only)", type: "number" },
             { name: "is_popular", label: "Show on homepage", type: "boolean" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
@@ -529,7 +528,6 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {t.code} · {t.category} · needle/tube ৳{t.consumableFee}
-                {t.isGovernmentRate ? " · government rate" : ""}
               </p>
             </div>
             <Button size="sm" variant="secondary" onClick={() => { setEditing(t); setCreating(false); }}>
