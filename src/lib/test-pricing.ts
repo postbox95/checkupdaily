@@ -1,7 +1,6 @@
 type MedicalTestPricingFields = {
   category?: unknown;
   consumable_fee?: unknown;
-  is_government_rate?: unknown;
 };
 
 /** Enforce the site-wide test fee rules whenever an admin saves a test. */
@@ -12,6 +11,5 @@ export function normalizeMedicalTestPricing<T extends MedicalTestPricingFields>(
     ...values,
     consumable_fee:
       values.category === "PATHOLOGY" && Number.isFinite(fee) ? fee : 0,
-    is_government_rate: false as const,
   };
 }

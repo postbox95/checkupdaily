@@ -26,9 +26,8 @@ describe("test pricing rules", () => {
     const saved = normalizeMedicalTestPricing({
       category: "PATHOLOGY",
       consumable_fee: 0,
-      is_government_rate: true,
     });
 
-    expect(saved.is_government_rate).toBe(false);
+    expect(saved.consumable_fee).toBe(0);
   });
 });
