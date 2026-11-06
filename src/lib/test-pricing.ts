@@ -3,7 +3,7 @@ type MedicalTestPricingFields = {
   consumable_fee?: unknown;
 };
 
-/** Enforce the site-wide test fee rules whenever an admin saves a test. */
+/** Prevent needle/tube charges from being saved for non-pathology tests. */
 export function normalizeMedicalTestPricing<T extends MedicalTestPricingFields>(values: T) {
   const fee = Number(values.consumable_fee ?? 0);
 
