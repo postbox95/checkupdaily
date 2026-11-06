@@ -15,6 +15,7 @@ import {
   type TestPrice,
   type Thana,
 } from "@/data/seed";
+import { normalizeMedicalTestPricing } from "@/lib/test-pricing";
 
 function publicClient() {
   const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
@@ -245,12 +246,16 @@ export const saveRecord = createServerFn({ method: "POST" })
     await assertAdmin(context);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const t: any = context.supabase.from(data.table);
+    const values =
+      data.table === "medical_tests"
+        ? normalizeMedicalTestPricing(data.values)
+        : data.values;
     if (data.id) {
-      const { error } = await t.update(data.values).eq("id", data.id);
+      const { error } = await t.update(values).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: inserted, error } = await t.insert(data.values).select("id").single();
+    const { data: inserted, error } = await t.insert(values).select("id").single();
     if (error) throw new Error(error.message);
     return { id: inserted.id as string };
   });

@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep test-pricing normalization in a pure shared module used by admin writes, so category-based fees and government-rate rules are enforced consistently.
