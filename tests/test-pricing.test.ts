@@ -13,13 +13,15 @@ describe("test pricing rules", () => {
   });
 
   test("removes the needle and tools fee from radiology tests", () => {
-    const saved = normalizeMedicalTestPricing({
-      category: "RADIOLOGY",
-      consumable_fee: 25,
-      is_government_rate: false,
-    });
+    for (const category of ["RADIOLOGY", "CARDIOLOGY", "ENDOSCOPY", "OTHER"]) {
+      const saved = normalizeMedicalTestPricing({
+        category,
+        consumable_fee: 25,
+        is_government_rate: false,
+      });
 
-    expect(saved.consumable_fee).toBe(0);
+      expect(saved.consumable_fee).toBe(0);
+    }
   });
 
   test("always turns off government-rate status", () => {

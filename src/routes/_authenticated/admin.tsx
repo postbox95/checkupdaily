@@ -496,7 +496,12 @@ function TestsPanel({ tests }: { tests: MedicalTest[] }) {
             { name: "fasting_required", label: "Fasting required", type: "boolean" },
             { name: "fasting_hours", label: "Fasting hours", type: "number" },
             { name: "report_delivery_hrs", label: "Report delivery (hrs)", type: "number" },
-            { name: "consumable_fee", label: "Needle / tools charge (pathology and blood tests only)", type: "number" },
+            {
+              name: "consumable_fee",
+              label: "Needle / tools charge (pathology and blood tests only)",
+              type: "number",
+              showWhen: { name: "category", value: "PATHOLOGY" },
+            },
             { name: "is_popular", label: "Show on homepage", type: "boolean" },
             { name: "is_active", label: "Published", type: "boolean" },
             { name: "sort_order", label: "Sort order", type: "number" },
@@ -1526,6 +1531,7 @@ interface FieldDef {
   textarea?: boolean;
   options?: readonly string[];
   valueOptions?: { value: string; label: string }[];
+  showWhen?: { name: string; value: unknown };
 }
 
 function RecordForm({
@@ -1544,7 +1550,9 @@ function RecordForm({
 
   return (
     <div className="surface-card grid gap-3 p-4 sm:grid-cols-2">
-      {fields.map((f) => (
+      {fields
+        .filter((f) => !f.showWhen || values[f.showWhen.name] === f.showWhen.value)
+        .map((f) => (
         <div key={f.name} className={f.textarea ? "sm:col-span-2" : ""}>
           <Label htmlFor={f.name}>{f.label}</Label>
           {f.type === "boolean" ? (
@@ -1594,7 +1602,7 @@ function RecordForm({
             />
           )}
         </div>
-      ))}
+        ))}
       <div className="flex gap-2 sm:col-span-2">
         <Button onClick={() => onSave(values)}>Save</Button>
         <Button variant="outline" onClick={onCancel}>
