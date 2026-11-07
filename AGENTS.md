@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep test-pricing normalization in a pure shared module used by admin writes, so category-based fees and government-rate rules are enforced consistently.
+- Keep admin section navigation and its catalog overview in the authenticated admin shell, reusing existing tab panels so admin tools remain in place.

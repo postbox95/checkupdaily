@@ -2,6 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Suspense, useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+  Building2,
+  FileText,
+  GitBranch,
+  HeartPulse,
+  Image,
+  MapPin,
+  MessageSquareText,
+  Settings2,
+  ShieldCheck,
+  Tags,
+  Users,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { claimAdmin } from "@/lib/catalog.functions";
 import {
@@ -101,48 +114,119 @@ function AdminGate() {
 function AdminShell() {
   const navigate = useNavigate();
   const catalog = useAdminCatalog();
+  const [activeSection, setActiveSection] = useState("chains");
+
+  const navigationGroups = [
+    {
+      label: "Catalog",
+      items: [
+        { value: "chains", label: "Lab chains", icon: Building2 },
+        { value: "tests", label: "Tests", icon: FlaskIcon },
+        { value: "labs", label: "Branches", icon: GitBranch },
+        { value: "prices", label: "Price matrix", icon: Tags },
+        { value: "areas", label: "Areas", icon: MapPin },
+      ],
+    },
+    {
+      label: "Engagement",
+      items: [
+        { value: "reviews", label: "Reviews", icon: MessageSquareText },
+        { value: "banners", label: "Ad banners", icon: Image },
+      ],
+    },
+    {
+      label: "Site management",
+      items: [
+        { value: "settings", label: "Site settings", icon: Settings2 },
+        { value: "about", label: "About page", icon: FileText },
+        { value: "seo", label: "SEO settings", icon: ShieldCheck },
+        { value: "users", label: "Users & roles", icon: Users },
+      ],
+    },
+  ];
+  const selectedLabel =
+    navigationGroups.flatMap((group) => group.items).find((item) => item.value === activeSection)
+      ?.label ?? "Lab chains";
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 pb-24">
-      <header className="flex flex-wrap items-center gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Content Manager</h1>
-          <p className="text-sm text-muted-foreground">
-            {catalog.chains.length} chains · {catalog.tests.length} tests · {catalog.centers.length}{" "}
-            branches · {catalog.prices.length} overrides · {catalog.thanas.length} areas
-          </p>
-        </div>
-        <div className="ml-auto flex gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/">View site</Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate({ to: "/auth", replace: true });
-            }}
-          >
-            Sign out
-          </Button>
-        </div>
-      </header>
+    <main className="min-h-svh bg-muted/50 p-3 sm:p-5 lg:p-6">
+      <Tabs value={activeSection} onValueChange={setActiveSection}>
+        <div className="mx-auto grid max-w-[1600px] gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
+          <aside className="overflow-hidden rounded-lg bg-admin-nav text-admin-nav-foreground shadow-card lg:sticky lg:top-5 lg:flex lg:h-[calc(100svh-2.5rem)] lg:flex-col">
+            <Link
+              to="/"
+              className="flex items-center gap-3 border-b border-admin-nav-border px-4 py-4"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-admin-nav-active text-admin-nav-active-foreground">
+                <HeartPulse className="size-5" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-extrabold">CheckUp Daily</span>
+                <span className="block text-xs text-admin-nav-muted">Admin Console</span>
+              </span>
+            </Link>
+            <nav aria-label="Content management sections" className="min-w-0 flex-1 lg:overflow-y-auto">
+              <TabsList
+                aria-label="Content management sections"
+                className="flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-none bg-transparent px-2 py-2 lg:flex-col lg:items-stretch lg:overflow-visible lg:px-2 lg:py-4"
+              >
+                {navigationGroups.map((group) => (
+                  <div key={group.label} className="contents" role="presentation">
+                    <p className="hidden px-3 pb-1 pt-3 text-[10px] font-bold tracking-wide text-admin-nav-muted uppercase lg:block">
+                      {group.label}
+                    </p>
+                    {group.items.map(({ value, label, icon: Icon }) => (
+                      <TabsTrigger
+                        key={value}
+                        value={value}
+                        className="h-10 shrink-0 justify-start gap-2 rounded-md px-3 text-left text-xs font-semibold text-admin-nav-foreground shadow-none hover:bg-admin-nav-hover hover:text-admin-nav-foreground data-[state=active]:bg-admin-nav-active data-[state=active]:text-admin-nav-active-foreground data-[state=active]:shadow-none lg:w-full"
+                      >
+                        <Icon className="size-4 shrink-0" aria-hidden />
+                        {label}
+                      </TabsTrigger>
+                    ))}
+                  </div>
+                ))}
+              </TabsList>
+            </nav>
+            <div className="hidden border-t border-admin-nav-border p-4 text-xs text-admin-nav-muted lg:block">
+              <p className="font-semibold text-admin-nav-foreground">Catalog overview</p>
+              <p className="mt-1">{catalog.prices.length} branch price overrides</p>
+            </div>
+          </aside>
 
-      <Tabs defaultValue="chains" className="mt-6">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="chains">Lab chains</TabsTrigger>
-          <TabsTrigger value="tests">Tests</TabsTrigger>
-          <TabsTrigger value="labs">Branches</TabsTrigger>
-          <TabsTrigger value="prices">Price matrix</TabsTrigger>
-          <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          <TabsTrigger value="banners">Ad banners</TabsTrigger>
-          <TabsTrigger value="areas">Areas</TabsTrigger>
-          <TabsTrigger value="settings">Site settings</TabsTrigger>
-          <TabsTrigger value="about">About page</TabsTrigger>
-          <TabsTrigger value="seo">SEO settings</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-        </TabsList>
+          <section className="min-w-0">
+            <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border bg-card px-4 py-4 shadow-card sm:flex sm:flex-wrap sm:px-5">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-muted-foreground">Content Manager</p>
+                <h1 className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">{selectedLabel}</h1>
+                <p className="mt-1 hidden text-sm text-muted-foreground sm:block">
+                  Manage lab chains, branches, pricing, hours and collection details in one place.
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/">View site</Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigate({ to: "/auth", replace: true });
+                  }}
+                >
+                  Sign out
+                </Button>
+              </div>
+            </header>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <AdminStat icon={Building2} label="Lab chains" value={catalog.chains.length} />
+              <AdminStat icon={FlaskIcon} label="Tests" value={catalog.tests.length} />
+              <AdminStat icon={GitBranch} label="Branches" value={catalog.centers.length} />
+              <AdminStat icon={MapPin} label="Areas" value={catalog.thanas.length} />
+            </div>
 
         <TabsContent value="chains">
           <ChainsPanel catalog={catalog} />
@@ -184,10 +268,36 @@ function AdminShell() {
         <TabsContent value="users">
           <UsersPanel />
         </TabsContent>
+          </section>
+        </div>
       </Tabs>
     </main>
   );
 }
+
+function AdminStat({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Building2;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="grid min-h-20 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-card sm:p-4">
+      <span className="grid size-10 place-items-center rounded-md bg-accent text-accent-foreground">
+        <Icon className="size-5" aria-hidden />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-xl font-extrabold leading-none">{value.toLocaleString()}</p>
+        <p className="mt-1 truncate text-xs font-medium text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+const FlaskIcon = (props: React.ComponentProps<typeof Building2>) => <FileText {...props} />;
 
 type Catalog = ReturnType<typeof useAdminCatalog>;
 
