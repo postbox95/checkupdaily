@@ -1085,10 +1085,10 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
   return (
     <div className="mt-4 space-y-4">
       <div className="surface-card flex flex-wrap items-end gap-3 p-4">
-        <div>
+        <div className="min-w-0 max-w-full">
           <Label>Edit level</Label>
           <select
-            className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
+            className="mt-1 h-9 max-w-full rounded-md border border-border bg-background px-2 text-sm"
             value={scope}
             onChange={(e) => setScope(e.target.value as "chain" | "branch")}
           >
@@ -1097,10 +1097,10 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
           </select>
         </div>
         {scope === "chain" ? (
-          <div>
+          <div className="min-w-0 max-w-full">
             <Label>Chain</Label>
             <select
-              className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
+              className="mt-1 h-9 max-w-full rounded-md border border-border bg-background px-2 text-sm"
               value={chainId}
               onChange={(e) => setChainId(e.target.value)}
             >
@@ -1110,10 +1110,10 @@ function PricesPanel({ catalog }: { catalog: Catalog }) {
             </select>
           </div>
         ) : (
-          <div>
+          <div className="min-w-0 max-w-full">
             <Label>Lab branch</Label>
             <select
-              className="mt-1 h-9 rounded-md border border-border bg-background px-2 text-sm"
+              className="mt-1 h-9 max-w-full rounded-md border border-border bg-background px-2 text-sm"
               value={centerId}
               onChange={(e) => setCenterId(e.target.value)}
             >
