@@ -168,7 +168,28 @@ function AdminShell() {
               </span>
             </Link>
             <nav aria-label="Content management sections" className="min-w-0 flex-1 lg:overflow-y-auto">
-              <div className="flex gap-1 overflow-x-auto px-2 py-2 lg:block lg:overflow-visible lg:px-2 lg:py-4">
+              <div className="px-3 py-2 lg:hidden">
+                <label htmlFor="admin-section-mobile" className="sr-only">
+                  Choose an admin section
+                </label>
+                <select
+                  id="admin-section-mobile"
+                  value={activeSection}
+                  onChange={(event) => setActiveSection(event.target.value)}
+                  className="h-10 w-full rounded-md border border-admin-nav-border bg-admin-nav px-3 text-sm font-semibold text-admin-nav-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {navigationGroups.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.items.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <div className="hidden px-2 py-4 lg:block">
                 {navigationGroups.map((group) => (
                   <div key={group.label} className="shrink-0 lg:mb-2">
                     <p className="hidden px-3 pb-1 pt-3 text-[10px] font-bold tracking-wide text-admin-nav-muted uppercase lg:block">
