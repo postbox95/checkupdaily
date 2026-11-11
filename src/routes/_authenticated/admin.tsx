@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   Building2,
   FileText,
+  FlaskConical,
   GitBranch,
   HeartPulse,
   Image,
@@ -14,6 +15,7 @@ import {
   ShieldCheck,
   Tags,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { claimAdmin } from "@/lib/catalog.functions";
@@ -121,7 +123,7 @@ function AdminShell() {
       label: "Catalog",
       items: [
         { value: "chains", label: "Lab chains", icon: Building2 },
-        { value: "tests", label: "Tests", icon: FlaskIcon },
+        { value: "tests", label: "Tests", icon: FlaskConical },
         { value: "labs", label: "Branches", icon: GitBranch },
         { value: "prices", label: "Price matrix", icon: Tags },
         { value: "areas", label: "Areas", icon: MapPin },
@@ -166,28 +168,30 @@ function AdminShell() {
               </span>
             </Link>
             <nav aria-label="Content management sections" className="min-w-0 flex-1 lg:overflow-y-auto">
-              <TabsList
-                aria-label="Content management sections"
-                className="flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-none bg-transparent px-2 py-2 lg:flex-col lg:items-stretch lg:overflow-visible lg:px-2 lg:py-4"
-              >
+              <div className="flex gap-1 overflow-x-auto px-2 py-2 lg:block lg:overflow-visible lg:px-2 lg:py-4">
                 {navigationGroups.map((group) => (
-                  <div key={group.label} className="contents" role="presentation">
+                  <div key={group.label} className="shrink-0 lg:mb-2">
                     <p className="hidden px-3 pb-1 pt-3 text-[10px] font-bold tracking-wide text-admin-nav-muted uppercase lg:block">
                       {group.label}
                     </p>
-                    {group.items.map(({ value, label, icon: Icon }) => (
-                      <TabsTrigger
-                        key={value}
-                        value={value}
-                        className="h-10 shrink-0 justify-start gap-2 rounded-md px-3 text-left text-xs font-semibold text-admin-nav-foreground shadow-none hover:bg-admin-nav-hover hover:text-admin-nav-foreground data-[state=active]:bg-admin-nav-active data-[state=active]:text-admin-nav-active-foreground data-[state=active]:shadow-none lg:w-full"
-                      >
-                        <Icon className="size-4 shrink-0" aria-hidden />
-                        {label}
-                      </TabsTrigger>
-                    ))}
+                    <TabsList
+                      aria-label={`${group.label} sections`}
+                      className="flex h-auto w-auto flex-nowrap justify-start gap-1 rounded-none bg-transparent p-0 lg:w-full lg:flex-col lg:items-stretch"
+                    >
+                      {group.items.map(({ value, label, icon: Icon }) => (
+                        <TabsTrigger
+                          key={value}
+                          value={value}
+                          className="h-10 shrink-0 justify-start gap-2 rounded-md px-3 text-left text-xs font-semibold text-admin-nav-foreground shadow-none hover:bg-admin-nav-hover hover:text-admin-nav-foreground data-[state=active]:bg-admin-nav-active data-[state=active]:text-admin-nav-active-foreground data-[state=active]:shadow-none lg:w-full"
+                        >
+                          <Icon className="size-4 shrink-0" aria-hidden />
+                          {label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
                   </div>
                 ))}
-              </TabsList>
+              </div>
             </nav>
             <div className="hidden border-t border-admin-nav-border p-4 text-xs text-admin-nav-muted lg:block">
               <p className="font-semibold text-admin-nav-foreground">Catalog overview</p>
@@ -223,7 +227,7 @@ function AdminShell() {
 
             <div className="mt-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
               <AdminStat icon={Building2} label="Lab chains" value={catalog.chains.length} />
-              <AdminStat icon={FlaskIcon} label="Tests" value={catalog.tests.length} />
+              <AdminStat icon={FlaskConical} label="Tests" value={catalog.tests.length} />
               <AdminStat icon={GitBranch} label="Branches" value={catalog.centers.length} />
               <AdminStat icon={MapPin} label="Areas" value={catalog.thanas.length} />
             </div>
@@ -280,7 +284,7 @@ function AdminStat({
   label,
   value,
 }: {
-  icon: typeof Building2;
+  icon: LucideIcon;
   label: string;
   value: number;
 }) {
@@ -297,7 +301,6 @@ function AdminStat({
   );
 }
 
-const FlaskIcon = (props: React.ComponentProps<typeof Building2>) => <FileText {...props} />;
 
 type Catalog = ReturnType<typeof useAdminCatalog>;
 
