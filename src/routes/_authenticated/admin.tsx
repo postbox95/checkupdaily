@@ -229,7 +229,7 @@ function AdminShell() {
                   Manage lab chains, branches, pricing, hours and collection details in one place.
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 gap-2 sm:ml-auto">
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/">View site</Link>
                 </Button>
